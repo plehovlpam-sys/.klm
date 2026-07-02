@@ -1,15 +1,905 @@
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Material 3 E-Diary App</title>
-    </head>
 
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-  
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>iA iPhone 26.5</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Helvetica Neue', 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+    .iphone-frame {
+      width: 100%;
+      max-width: 430px;
+      background: white;
+      min-height: 100vh;
+      box-shadow: none;
+      border-radius: 0;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 20px;
+    }
+    .ios-top-bar {
+      background: white;
+      padding: 12px 16px 8px 16px;
+      border-bottom: 1px solid #c8c8c8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+    .ios-top-bar .title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a;
+      letter-spacing: -0.3px;
+      margin: 0 auto;
+    }
+    .path-bar {
+      background: #f9f9f9;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 15px;
+      font-weight: 400;
+      color: #3a3a3a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .path-bar .path-icon { font-size: 18px; line-height: 1; }
+    .path-bar .path-text {
+      font-family: 'SF Mono', 'Menlo', monospace;
+      font-size: 14px;
+      color: #1f1f1f;
+      word-break: break-all;
+    }
+    .file-grid {
+      display: flex;
+      flex-direction: column;
+      padding: 0 16px 16px 16px;
+      background: white;
+      flex: 1;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #e9e9e9;
+      cursor: pointer;
+      transition: background 0.05s ease;
+      border-radius: 0;
+      box-shadow: none;
+      background: white;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .file-item:active { background: #f0f0f0; }
+    .file-icon {
+      font-size: 24px;
+      width: 40px;
+      text-align: center;
+      margin-right: 14px;
+      color: #1e1e1e;
+      flex-shrink: 0;
+      font-weight: 400;
+    }
+    .file-info { flex: 1; display: flex; flex-direction: column; }
+    .file-name {
+      font-size: 17px;
+      font-weight: 400;
+      color: #1a1a1a;
+      letter-spacing: -0.2px;
+      line-height: 1.3;
+    }
+    .file-meta {
+      font-size: 13px;
+      color: #8e8e8e;
+      margin-top: 2px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .file-meta span { display: inline-block; }
+    .file-size {
+      background: #f0f0f0;
+      padding: 0 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #3a3a3a;
+    }
+    .context-menu-overlay {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      max-width: 430px;
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: none;
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: flex-end;
+      height: 100vh;
+      margin: 0 auto;
+      right: 0;
+      pointer-events: none;
+    }
+    .context-menu-overlay.active {
+      display: flex;
+      pointer-events: auto;
+    }
+    .context-menu-sheet {
+      background: white;
+      width: 100%;
+      border-radius: 7px 7px 0 0;
+      padding: 28px 20px 40px 20px;
+      box-shadow: none;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      border: none;
+      border-top: 1px solid #d0d0d0;
+      pointer-events: auto;
+      margin: 0 auto;
+      max-width: 430px;
+    }
+    .context-menu-overlay.active .context-menu-sheet { transform: translateY(0); }
+    .context-menu-sheet .menu-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #8e8e8e;
+      text-align: center;
+      margin-bottom: 20px;
+      letter-spacing: 0.2px;
+      border-bottom: 1px solid #e5e5e5;
+      padding-bottom: 14px;
+    }
+    .context-menu-sheet .menu-item {
+      padding: 16px 0;
+      font-size: 20px;
+      font-weight: 400;
+      color: #1a1a1a;
+      border-bottom: 1px solid #ececec;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.1s;
+      border-radius: 0;
+    }
+    .context-menu-sheet .menu-item:active { background: #f0f0f0; }
+    .context-menu-sheet .menu-item.danger { color: #ff3b30; }
+    .context-menu-sheet .menu-item:last-child {
+      border-bottom: none;
+      margin-top: 8px;
+      font-weight: 500;
+      color: #007aff;
+    }
+    .context-menu-sheet .menu-item:last-child:active { background: #e0e0e0; }
+    .file-item, .path-bar, .ios-top-bar, .context-menu-sheet { box-shadow: none !important; }
+    .file-icon.folder { color: #007aff; }
+
+    /* Loader */
+    #loader {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: white;
+      font-size: 18px;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+    #loader .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top: 3px solid #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 24px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loader .sub {
+      font-size: 14px;
+      color: #888;
+      margin-top: 8px;
+    }
+    .hidden { display: none !important; }
+
+    /* Setup UI */
+    #setupUI {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+    }
+    #setupUI.active { display: flex; }
+    .setup-card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px 24px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .setup-card h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .setup-field {
+      margin-bottom: 16px;
+    }
+    .setup-field label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 4px;
+    }
+    .setup-field input, .setup-field select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #d0d0d0;
+      border-radius: 7px;
+      font-size: 16px;
+      background: white;
+      outline: none;
+    }
+    .setup-field input:disabled {
+      background: #f0f0f0;
+      color: #777;
+    }
+    .setup-field select { appearance: auto; }
+    .setup-btn {
+      width: 100%;
+      padding: 14px;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .setup-btn:active { background: #0055cc; }
+    .glitch {
+      animation: glitch 0.5s ease;
+    }
+    @keyframes glitch {
+      0% { opacity: 1; }
+      10% { opacity: 0; }
+      20% { opacity: 1; }
+      30% { opacity: 0; }
+      40% { opacity: 1; }
+      50% { opacity: 0; }
+      60% { opacity: 1; }
+      70% { opacity: 0; }
+      80% { opacity: 1; }
+      90% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="iphone-frame" id="app">
+    <div class="ios-top-bar"><span class="title">Files</span></div>
+    <div class="path-bar" id="pathBar">
+      <span class="path-icon">⌂</span>
+      <span class="path-text" id="currentPath">/var</span>
+    </div>
+    <div class="file-grid" id="fileGrid"></div>
+    <div class="context-menu-overlay" id="contextOverlay">
+      <div class="context-menu-sheet" id="contextSheet">
+        <div class="menu-title" id="contextFileName">file.txt</div>
+        <div class="menu-item" data-action="open">Open</div>
+        <div class="menu-item" data-action="copy">Copy</div>
+        <div class="menu-item" data-action="move">Move</div>
+        <div class="menu-item" data-action="info">Info</div>
+        <div class="menu-item danger" data-action="delete">Delete</div>
+        <div class="menu-item" data-action="cancel">Cancel</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <div>Loading Filesystem...</div>
+    <div class="sub" id="loaderSub">Analyzing /var structure</div>
+  </div>
+
+  <!-- Setup UI -->
+  <div id="setupUI">
+    <div class="setup-card">
+      <h2>Hi! Let's start with Filesystem Setup</h2>
+      <div class="setup-field">
+        <label>Apple ID (read-only)</label>
+        <input type="text" value="Милана Никулина" disabled>
+      </div>
+      <div class="setup-field">
+        <label>Jailbreak Type</label>
+        <select id="jbType">
+          <option value="rootless">Rootless (iOS 15+)</option>
+          <option value="rootful">Rootful (iOS 26-27)</option>
+          <option value="semi">Semi-untethered</option>
+          <option value="tethered">Tethered</option>
+        </select>
+      </div>
+      <div class="setup-field">
+        <label>FS Mount Mode</label>
+        <select id="mountMode">
+          <option value="rw">Read-Write</option>
+          <option value="ro">Read-Only</option>
+          <option value="remount">Remount</option>
+        </select>
+      </div>
+      <div class="setup-field">
+        <label>FS Analysis Depth</label>
+        <select id="depthMode">
+          <option value="full">Full (recursive)</option>
+          <option value="shallow">Shallow (1 level)</option>
+          <option value="smart">Smart (auto)</option>
+        </select>
+      </div>
+      <button class="setup-btn" id="setupDone">Done</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // --------------------------------------------------------------
+      // EXTREME FS TREE – full /var with mobilegestalt and nugget
+      // --------------------------------------------------------------
+      function randomDate() {
+        const m = String(Math.floor(Math.random() * 5) + 1).padStart(2, '0');
+        const d = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+        const h = String(Math.floor(Math.random() * 24)).padStart(2, '0');
+        const min = String(Math.floor(Math.random() * 60)).padStart(2, '0');
+        return `2026-${m}-${d} ${h}:${min}`;
+      }
+      function randomSize() {
+        const sizes = ['0.2 KB','0.4 KB','0.8 KB','1.2 KB','2.4 KB','4.8 KB','8.1 KB','12.3 KB','24.6 KB','48.2 KB','96.5 KB','0.3 MB','0.7 MB','1.2 MB','2.8 MB','5.6 MB','11.3 MB','22.7 MB','45.2 MB','88.4 MB','124.6 MB'];
+        return sizes[Math.floor(Math.random() * sizes.length)];
+      }
+      function createFile(name) { return { name, type: 'file', size: randomSize(), modified: randomDate() }; }
+      function createFolder(name, children) { return { name, type: 'folder', children: children || [] }; }
+
+      // Build massive FS with mobilegestalt and nugget
+      const FS = {
+        name: 'var',
+        type: 'folder',
+        children: [
+          // mobilegestalt in /var
+          createFolder('mobilegestalt', [
+            createFile('Gestalt.plist'),
+            createFile('Gestalt_alt.plist'),
+            createFile('gestalt_cache.db')
+          ]),
+          // nugget with backup and iboot
+          createFolder('nugget', [
+            createFolder('backup', [
+              createFile('mobilegestalt.plist'),
+              createFile('iboot_001.img4'),
+              createFile('iboot_002.img4'),
+              createFile('iboot_003.img4'),
+              createFile('iboot_backup.img4')
+            ]),
+            createFolder('firmware', [
+              createFile('iboot.manifest'),
+              createFile('iboot.bin')
+            ])
+          ]),
+          // rest of /var
+          createFolder('mobile', [
+            createFolder('Containers', [
+              createFolder('Data', [
+                createFolder('Application', [
+                  createFolder('com.apple.mobilesafari', [
+                    createFolder('Documents', [
+                      createFile('history.db'), createFile('bookmarks.plist'), createFile('readinglist.db'),
+                      createFile('topSites.db'), createFile('favicons.db')
+                    ]),
+                    createFolder('Library', [
+                      createFolder('Preferences', [
+                        createFile('com.apple.mobilesafari.plist'), createFile('com.apple.webkit.plist'),
+                        createFile('com.apple.safarireader.plist')
+                      ]),
+                      createFolder('Caches', [
+                        createFile('cache.db'), createFile('webpage_previews.db'),
+                        createFolder('previews', [
+                          createFile('preview_001.png'), createFile('preview_002.png'), createFile('preview_003.png')
+                        ])
+                      ])
+                    ]),
+                    createFolder('tmp', [
+                      createFile('temp_001.tmp'), createFile('download_001.pdf'), createFile('download_002.pdf'),
+                      createFile('temp_002.tmp')
+                    ])
+                  ]),
+                  createFolder('com.apple.Preferences', [
+                    createFolder('Library', [
+                      createFolder('Preferences', [
+                        createFile('com.apple.Preferences.plist')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.MobileSMS', [
+                    createFolder('Library', [
+                      createFolder('SMS', [
+                        createFile('sms.db'), createFile('drafts.db'), createFile('attachments.db'),
+                        createFile('sms_backup.db')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.Music', [
+                    createFolder('Documents', [
+                      createFile('library.musicdb'), createFile('playlists.db'), createFile('cloudsync.db')
+                    ]),
+                    createFolder('Library', [
+                      createFolder('Preferences', [
+                        createFile('com.apple.Music.plist')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.MobileMail', [
+                    createFolder('Library', [
+                      createFolder('Mail', [
+                        createFolder('inbox.mbox', [
+                          createFile('message_001.eml'), createFile('message_002.eml'), createFile('message_003.eml')
+                        ]),
+                        createFolder('sent.mbox', [
+                          createFile('sent_001.eml')
+                        ])
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.Photos', [
+                    createFolder('Library', [
+                      createFolder('Photos', [
+                        createFile('photos.db'), createFile('thumbnails.db'), createFile('metadata.db')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.Maps', [
+                    createFolder('Library', [
+                      createFolder('Maps', [
+                        createFile('mapcache.db'), createFile('offline_maps.db'), createFile('favorites.plist')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.Clock', [
+                    createFolder('Library', [
+                      createFolder('Preferences', [
+                        createFile('com.apple.Clock.plist')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.Weather', [
+                    createFolder('Library', [
+                      createFolder('Weather', [
+                        createFile('weather.db'), createFile('locations.plist')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.Notes', [
+                    createFolder('Library', [
+                      createFolder('Notes', [
+                        createFile('notes.db'), createFile('attachments.db')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.Reminders', [
+                    createFolder('Library', [
+                      createFolder('Reminders', [
+                        createFile('reminders.db')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.Calendar', [
+                    createFolder('Library', [
+                      createFolder('Calendar', [
+                        createFile('calendar.db'), createFile('events.db')
+                      ])
+                    ])
+                  ]),
+                  createFolder('com.apple.AppStore', [
+                    createFolder('Library', [
+                      createFolder('Preferences', [
+                        createFile('com.apple.AppStore.plist')
+                      ])
+                    ])
+                  ])
+                ])
+              ]),
+              createFolder('Bundle', [
+                createFolder('Application', [
+                  createFolder('com.apple.Preferences.app', [
+                    createFile('Info.plist'),
+                    createFolder('Settings.bundle', [
+                      createFile('Root.plist')
+                    ])
+                  ]),
+                  createFolder('com.apple.MobileSMS.app', [ createFile('Info.plist') ]),
+                  createFolder('com.apple.Music.app', [ createFile('Info.plist') ]),
+                  createFolder('com.apple.MobileMail.app', [ createFile('Info.plist') ]),
+                  createFolder('com.apple.Photos.app', [ createFile('Info.plist') ])
+                ])
+              ])
+            ]),
+            createFolder('Media', [
+              createFolder('DCIM', [
+                createFolder('100APPLE', [
+                  createFile('IMG_0001.HEIC'), createFile('IMG_0002.HEIC'), createFile('IMG_0003.HEIC'),
+                  createFile('IMG_0004.HEIC'), createFile('IMG_0005.HEIC')
+                ]),
+                createFolder('101APPLE', [
+                  createFile('IMG_0100.HEIC'), createFile('IMG_0101.HEIC'), createFile('IMG_0102.HEIC')
+                ]),
+                createFolder('102APPLE', [
+                  createFile('IMG_0200.MOV'), createFile('IMG_0201.MOV')
+                ]),
+                createFolder('103APPLE', [
+                  createFile('IMG_0300.HEIC'), createFile('IMG_0301.HEIC')
+                ])
+              ]),
+              createFolder('Recordings', [
+                createFile('recording_2026-04-29.m4a'), createFile('recording_2026-05-01.m4a'),
+                createFile('recording_2026-05-02.m4a'), createFile('recording_2026-05-03.m4a')
+              ]),
+              createFolder('Downloads', [
+                createFile('document_001.pdf'), createFile('archive_001.zip'),
+                createFile('document_002.pdf'), createFile('archive_002.zip'),
+                createFile('image_001.png'), createFile('image_002.jpg')
+              ]),
+              createFolder('Podcasts', [ createFile('podcast_001.m4a'), createFile('podcast_002.m4a') ]),
+              createFolder('Audiobooks', [ createFile('audiobook_001.m4b'), createFile('audiobook_002.m4b') ])
+            ]),
+            createFolder('Library', [
+              createFolder('SMS', [
+                createFolder('attachments', [
+                  createFile('IMG_1234.jpg'), createFile('IMG_5678.png'),
+                  createFile('IMG_9012.jpg'), createFile('VID_001.mov')
+                ])
+              ]),
+              createFolder('Preferences', [
+                createFile('com.apple.mobilephone.plist'), createFile('com.apple.springboard.plist'),
+                createFile('com.apple.notificationcenter.plist'), createFile('com.apple.controlcenter.plist'),
+                createFile('com.apple.dock.plist'), createFile('com.apple.finder.plist')
+              ]),
+              createFolder('Caches', [
+                createFolder('com.apple.UIKit.preview', [ createFile('preview_cache.db') ]),
+                createFolder('com.apple.mediaserver', [
+                  createFolder('album_artwork', [
+                    createFile('cover_001.jpg'), createFile('cover_002.jpg'), createFile('cover_003.jpg')
+                  ])
+                ]),
+                createFolder('com.apple.spotlight', [ createFile('spotlight.db'), createFile('index.db') ])
+              ]),
+              createFolder('Application Support', [
+                createFolder('com.apple.mobilemail', [ createFile('maildata.db') ]),
+                createFolder('com.apple.safari', [ createFile('safaridata.db') ])
+              ]),
+              createFolder('Logs', [
+                createFile('system.log'), createFile('crash.log'), createFile('wifi.log')
+              ])
+            ]),
+            createFolder('Documents', [
+              createFile('notes.sqlite'), createFile('reminders.db'),
+              createFile('contacts.db'), createFile('call_history.db'), createFile('voicemail.db')
+            ]),
+            createFolder('tmp', [
+              createFolder('com.apple.softwareupdate', [
+                createFile('update.plist'), createFile('update_manifest.plist')
+              ]),
+              createFolder('com.apple.installer', [
+                createFile('temp_install.log'), createFile('install_001.log')
+              ]),
+              createFolder('com.apple.backup', [ createFile('backup_scratch.log') ])
+            ]),
+            createFolder('Root', [ createFile('.bash_history'), createFile('.bash_profile'), createFile('.zsh_history') ])
+          ]),
+          createFolder('log', [
+            createFile('system.log'),
+            createFolder('CrashReporter', [
+              createFile('MobileSafari_2026-04-30.crash'), createFile('SpringBoard_2026-05-01.crash'),
+              createFile('MobileMail_2026-05-02.crash'), createFile('Music_2026-04-29.crash')
+            ]),
+            createFolder('DiagnosticLogs', [
+              createFile('wifi.log'), createFile('bluetooth.log'), createFile('cellular.log'), createFile('gps.log')
+            ]),
+            createFolder('AppleSupport', [ createFile('sysdiagnose_001.tar.gz'), createFile('sysdiagnose_002.tar.gz') ])
+          ]),
+          createFolder('run', [
+            createFile('utmpx'), createFile('syslog.pid'), createFile('mDNSResponder.pid'), createFile('ntpd.pid')
+          ]),
+          createFolder('spool', [
+            createFolder('mqueue', []),
+            createFolder('cups', [ createFolder('jobs', [ createFile('job_001'), createFile('job_002') ]) ])
+          ]),
+          createFolder('tmp', [
+            createFile('installer.log'),
+            createFolder('backup_scratch', [ createFile('partial_backup.tar'), createFile('partial_backup_001.tar') ]),
+            createFolder('com.apple.launchd', [ createFile('launchd.log'), createFile('launchd_errors.log') ])
+          ]),
+          createFolder('backups', [
+            createFile('backup_2026-04-28.tar'), createFile('backup_2026-05-01.tar'),
+            createFile('backup_2026-05-02.tar'), createFile('backup_2026-05-03.tar')
+          ]),
+          createFolder('cache', [
+            createFolder('com.apple.dock', [ createFile('cache.db'), createFile('icons.db') ]),
+            createFolder('com.apple.helpd', [ createFile('helpcache.db') ]),
+            createFolder('com.apple.softwareupdate', [ createFile('updatecache.db') ])
+          ]),
+          createFolder('db', [
+            createFile('system.sqlite'), createFile('network.sqlite'), createFile('keychain.sqlite'), createFile('accounts.sqlite')
+          ])
+        ]
+      };
+
+      // Count items
+      let totalItems = 0;
+      function countItems(node) {
+        if (node.children) {
+          totalItems += node.children.length;
+          node.children.forEach(c => countItems(c));
+        }
+      }
+      countItems(FS);
+
+      // --------------------------------------------------------------
+      // State
+      // --------------------------------------------------------------
+      let currentStack = [FS];
+      const fileGrid = document.getElementById('fileGrid');
+      const pathText = document.getElementById('currentPath');
+      const contextOverlay = document.getElementById('contextOverlay');
+      const contextSheet = document.getElementById('contextSheet');
+      const contextFileName = document.getElementById('contextFileName');
+      const loader = document.getElementById('loader');
+      const loaderSub = document.getElementById('loaderSub');
+      const setupUI = document.getElementById('setupUI');
+      const setupDone = document.getElementById('setupDone');
+      const app = document.getElementById('app');
+
+      let selectedItem = null;
+      let moveSource = null; // for Move action
+
+      function getCurrentFolder() { return currentStack[currentStack.length - 1]; }
+      function buildPath() { return '/' + currentStack.map(f => f.name).join('/'); }
+
+      // --------------------------------------------------------------
+      // Render
+      // --------------------------------------------------------------
+      function render() {
+        const folder = getCurrentFolder();
+        pathText.textContent = buildPath();
+        const children = folder.children || [];
+        const sorted = [...children].sort((a, b) => {
+          if (a.type === 'folder' && b.type !== 'folder') return -1;
+          if (a.type !== 'folder' && b.type === 'folder') return 1;
+          return a.name.localeCompare(b.name);
+        });
+        fileGrid.innerHTML = '';
+        sorted.forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'file-item';
+          const icon = item.type === 'folder' ? '▸' : '◻';
+          const sizeInfo = item.type === 'folder' ? (item.children ? `${item.children.length} items` : 'empty') : (item.size || '0 KB');
+          const modified = item.modified || '2026-04-20 00:00';
+          row.innerHTML = `
+            <div class="file-icon ${item.type === 'folder' ? 'folder' : ''}">${icon}</div>
+            <div class="file-info">
+              <div class="file-name">${item.name}</div>
+              <div class="file-meta">
+                <span>${item.type === 'folder' ? 'Folder' : 'File'}</span>
+                <span class="file-size">${sizeInfo}</span>
+                <span>${modified}</span>
+              </div>
+            </div>
+          `;
+          row.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (item.type === 'folder') {
+              currentStack.push(item);
+              render();
+            } else {
+              selectedItem = { ...item, parent: getCurrentFolder() };
+              contextFileName.textContent = item.name;
+              contextOverlay.classList.add('active');
+            }
+          });
+          fileGrid.appendChild(row);
+        });
+        if (currentStack.length > 1) {
+          const backRow = document.createElement('div');
+          backRow.className = 'file-item';
+          backRow.style.borderBottom = '1px solid #d0d0d0';
+          backRow.innerHTML = `
+            <div class="file-icon" style="color:#007aff;">⌂</div>
+            <div class="file-info">
+              <div class="file-name" style="color:#007aff;">..</div>
+              <div class="file-meta"><span>Parent folder</span></div>
+            </div>
+          `;
+          backRow.addEventListener('click', () => {
+            currentStack.pop();
+            render();
+          });
+          fileGrid.prepend(backRow);
+        }
+      }
+
+      // --------------------------------------------------------------
+      // Context menu
+      // --------------------------------------------------------------
+      document.querySelectorAll('.menu-item[data-action]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          const action = el.dataset.action;
+          if (action === 'cancel') { contextOverlay.classList.remove('active'); return; }
+          if (!selectedItem) return;
+
+          const name = selectedItem.name;
+          const parent = getCurrentFolder();
+
+          switch (action) {
+            case 'open':
+              alert(`Open: ${name}`);
+              break;
+            case 'copy':
+              alert(`Copied: ${name}`);
+              break;
+            case 'move':
+              // Move: store source, then prompt for destination folder
+              moveSource = { item: selectedItem, parent: getCurrentFolder() };
+              alert(`Move: ${name}\nTap a destination folder to move.`);
+              contextOverlay.classList.remove('active');
+              // we'll handle move on folder click
+              selectedItem = null;
+              return;
+            case 'info':
+              alert(`Info: ${name}\nSize: ${selectedItem.size || '—'}\nModified: ${selectedItem.modified || '—'}\nPath: ${buildPath()}/${name}`);
+              break;
+            case 'delete':
+              if (confirm(`Delete "${name}"?`)) {
+                if (parent.children) {
+                  const idx = parent.children.findIndex(c => c.name === name);
+                  if (idx !== -1) parent.children.splice(idx, 1);
+                  render();
+                }
+              }
+              break;
+            default: break;
+          }
+          contextOverlay.classList.remove('active');
+          selectedItem = null;
+        });
+      });
+
+      // Handle move: if moveSource is set, next folder click moves file
+      document.addEventListener('click', (e) => {
+        if (moveSource) {
+          // find if a folder was clicked
+          const target = e.target.closest('.file-item');
+          if (target) {
+            const nameEl = target.querySelector('.file-name');
+            if (nameEl && nameEl.textContent !== '..') {
+              // find the folder in current folder
+              const folder = getCurrentFolder();
+              const child = folder.children?.find(c => c.name === nameEl.textContent && c.type === 'folder');
+              if (child) {
+                // move file from source to this folder
+                const srcParent = moveSource.parent;
+                const srcItem = moveSource.item;
+                // remove from source
+                if (srcParent.children) {
+                  const idx = srcParent.children.findIndex(c => c.name === srcItem.name);
+                  if (idx !== -1) srcParent.children.splice(idx, 1);
+                }
+                // add to destination
+                if (!child.children) child.children = [];
+                child.children.push({ ...srcItem });
+                moveSource = null;
+                render();
+                alert(`Moved "${srcItem.name}" to ${child.name}`);
+                return;
+              }
+            }
+          }
+          // if click outside, cancel move
+          moveSource = null;
+          render();
+        }
+      });
+
+      contextOverlay.addEventListener('click', (e) => {
+        if (e.target === contextOverlay) {
+          contextOverlay.classList.remove('active');
+          selectedItem = null;
+        }
+      });
+
+      // --------------------------------------------------------------
+      // Boot sequence: loader 11s → alerts → glitch → setup → main
+      // --------------------------------------------------------------
+      function bootSequence() {
+        let step = 0;
+        const messages = [
+          'Mounting /var (rw)',
+          'Checking /mobilegestalt',
+          'Verifying FS',
+          'Mounting /System',
+          'Remounting / (ro)',
+          'Syncing filesystem'
+        ];
+        loaderSub.textContent = messages[0];
+
+        const interval = setInterval(() => {
+          step++;
+          if (step < messages.length) {
+            loaderSub.textContent = messages[step];
+          }
+        }, 1800);
+
+        setTimeout(() => {
+          clearInterval(interval);
+          // Alerts
+          setTimeout(() => alert('Mount: /var mounted successfully (rw)'), 100);
+          setTimeout(() => alert('Mount: /System remounted (ro)'), 400);
+          setTimeout(() => alert('Root file system access successfully obtained. Remember: 1) with great power comes great responsibility, 2) connect your iPhone to a power source if your battery is low.'), 800);
+
+          // Glitch
+          setTimeout(() => {
+            document.body.classList.add('glitch');
+            setTimeout(() => document.body.classList.remove('glitch'), 500);
+          }, 1200);
+
+          // Show setup
+          setTimeout(() => {
+            loader.classList.add('hidden');
+            setupUI.classList.add('active');
+          }, 1600);
+        }, 11000);
+      }
+
+      // Setup Done
+      setupDone.addEventListener('click', () => {
+        setupUI.classList.remove('active');
+        app.classList.remove('hidden');
+        render();
+      });
+
+      // Init
+      app.classList.add('hidden');
+      bootSequence();
+    })();
+  </script>
+</body>
+</html> 
