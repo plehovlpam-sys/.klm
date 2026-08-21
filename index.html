@@ -23,11 +23,16 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
 
-        /* Градиентный фон только в портретном режиме */
+        /* Исправленный градиент — не растягивается */
         @media (orientation: portrait) and (max-width: 768px) {
             body {
-                background: radial-gradient(ellipse at center, #2b003d 0%, #000000 70%);
+                background: radial-gradient(circle at center, #2b003d 0%, #000000 70%);
                 background-attachment: fixed;
+                background-size: 100% 100%;
+                background-position: center;
+                background-repeat: no-repeat;
+                min-height: 100vh;
+                min-height: 100dvh;
             }
         }
 
@@ -37,7 +42,6 @@
             }
         }
 
-        /* Десктопный режим (ширина > 768px) */
         @media (min-width: 769px) {
             body {
                 background: #000;
@@ -97,7 +101,6 @@
             opacity: 1;
         }
 
-        /* Сообщение о повороте */
         .rotate-message {
             position: fixed;
             top: 0;
@@ -151,7 +154,6 @@
             }
         }
 
-        /* Десктопное сообщение (ширина > 768px) */
         .desktop-message {
             position: fixed;
             top: 0;
@@ -194,13 +196,11 @@
     </style>
 </head>
 <body>
-    <!-- Десктопное сообщение -->
     <div class="desktop-message" id="desktopMessage">
         ОТКРОЙ НА ТЕЛЕФОНЕ
         <img src="eyes.png" alt="" />
     </div>
 
-    <!-- Сообщение для горизонтального режима -->
     <div class="rotate-message" id="rotateMessage">
         ПЕРЕВЕРНИ ТЕЛЕФОН<br>В ПОРТРЕТНЫЙ РЕЖИМ
     </div>
@@ -371,7 +371,6 @@
                 drawOverlay(lastRedArea, lastImgWidth, lastImgHeight);
             }
 
-            // ЗАПУСК
             if (img.complete) {
                 setTimeout(processImage, 100);
             } else {
