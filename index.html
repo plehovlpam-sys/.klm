@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Phone Frame</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600&display=swap" />
     <style>
         * {
             margin: 0;
@@ -20,12 +21,13 @@
 
         body {
             background: #000;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
         }
 
+        /* Градиент */
         @media (orientation: portrait) and (max-width: 768px) {
             body {
-                background: radial-gradient(circle at center, #4a0066 0%, #2b003d 40%, #000000 80%);
+                background: radial-gradient(circle at center, #7b00b3 0%, #4a0066 35%, #2b003d 65%, #000000 90%);
                 background-attachment: fixed;
                 background-size: 100% 100%;
                 background-position: center;
@@ -100,30 +102,89 @@
             opacity: 1;
         }
 
-        /* СТАТУС БАР — увеличенный размер и отладка */
-        #statusBar {
+        /* ===== WP8 ИНТЕРФЕЙС ВНУТРИ БЕЛОГО ЭКРАНА ===== */
+        .wp-content {
             position: absolute;
-            z-index: 10;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-            display: block;
-            /* ВРЕМЕННЫЙ КРАСНЫЙ ФОН ДЛЯ ОТЛАДКИ */
-            background: rgba(255, 0, 0, 0.3);
-            border: 2px solid red;
-        }
-
-        #statusBar.visible {
-            opacity: 1;
-        }
-
-        #statusBar img {
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            display: block;
-            object-fit: contain;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: transparent;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
 
+        .wp-content.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .wp-content .title {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 52px;
+            font-weight: 300;
+            color: #000;
+            letter-spacing: -1px;
+            text-transform: lowercase;
+            margin-bottom: 12px;
+            line-height: 1;
+        }
+
+        .wp-content .image-wrap {
+            margin: 8px 0 16px 0;
+            line-height: 0;
+        }
+
+        .wp-content .image-wrap img {
+            width: 120px;
+            height: auto;
+            display: block;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .wp-content .buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .wp-content .buttons a {
+            display: block;
+            width: 100%;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 15px;
+            font-weight: 400;
+            text-transform: lowercase;
+            color: #000;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            padding: 8px 0;
+            text-align: center;
+            text-decoration: none;
+            letter-spacing: 0.3px;
+            transition: background 0.15s ease;
+            border-radius: 0;
+            box-shadow: none;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        .wp-content .buttons a:active {
+            background: rgba(200, 200, 200, 0.9);
+        }
+
+        /* ===== ПОВОРОТ И ДЕСКТОП ===== */
         .rotate-message {
             position: fixed;
             top: 0;
@@ -135,7 +196,7 @@
             justify-content: center;
             background: #000;
             z-index: 999;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
             font-size: 14px;
             font-weight: 400;
             color: #666;
@@ -163,7 +224,7 @@
             }
             .phone-frame img,
             #overlayCanvas,
-            #statusBar {
+            .wp-content {
                 display: none !important;
             }
         }
@@ -174,7 +235,7 @@
             }
             .phone-frame img,
             #overlayCanvas,
-            #statusBar {
+            .wp-content {
                 display: block;
             }
         }
@@ -190,7 +251,7 @@
             justify-content: center;
             background: #000;
             z-index: 1000;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
             font-size: 14px;
             font-weight: 400;
             color: #666;
@@ -214,8 +275,8 @@
             }
             .phone-frame img,
             #overlayCanvas,
-            .rotate-message,
-            #statusBar {
+            .wp-content,
+            .rotate-message {
                 display: none !important;
             }
         }
@@ -235,10 +296,18 @@
         <div class="phone-frame" id="phoneFrame">
             <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
             <canvas id="overlayCanvas"></canvas>
-            
-            <!-- СТАТУС БАР -->
-            <div id="statusBar">
-                <img src="statusbarbtns.PNG" alt="Status Bar" />
+
+            <!-- WP8 ИНТЕРФЕЙС -->
+            <div class="wp-content" id="wpContent">
+                <div class="title">heyyy</div>
+                <div class="image-wrap">
+                    <img src="a.png" alt="" />
+                </div>
+                <div class="buttons">
+                    <a href="#" target="_blank">ig</a>
+                    <a href="#" target="_blank">tg (dm)</a>
+                    <a href="#" target="_blank">tg (channel)</a>
+                </div>
             </div>
         </div>
     </div>
@@ -248,8 +317,7 @@
             const img = document.getElementById('frameImage');
             const canvas = document.getElementById('overlayCanvas');
             const ctx = canvas.getContext('2d');
-            const statusBar = document.getElementById('statusBar');
-            const statusBarImg = statusBar.querySelector('img');
+            const wpContent = document.getElementById('wpContent');
 
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
@@ -258,21 +326,7 @@
             let lastImgWidth = 0;
             let lastImgHeight = 0;
             let isReady = false;
-            let statusBarLoaded = false;
-
-            if (statusBarImg) {
-                if (statusBarImg.complete) {
-                    statusBarLoaded = true;
-                } else {
-                    statusBarImg.addEventListener('load', function() {
-                        statusBarLoaded = true;
-                        console.log('✅ Статусбар загружен');
-                        if (isReady && lastRedArea) {
-                            positionStatusBar(lastRedArea, lastImgWidth, lastImgHeight);
-                        }
-                    });
-                }
-            }
+            let isWpVisible = false;
 
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
@@ -358,44 +412,9 @@
                 };
             }
 
-            function positionStatusBar(redArea, imgWidth, imgHeight) {
-                if (!statusBarLoaded) {
-                    console.warn('⏳ Статусбар ещё не загружен');
-                    return;
-                }
-
-                const display = getImageDisplayRect();
-                const scaleX = display.width / imgWidth;
-                const scaleY = display.height / imgHeight;
-
-                const x = display.left + redArea.left * scaleX;
-                const y = display.top + redArea.top * scaleY;
-                const w = redArea.width * scaleX;
-                const h = redArea.height * scaleY;
-
-                const imgWidth_n = statusBarImg.naturalWidth;
-                const imgHeight_n = statusBarImg.naturalHeight;
-
-                // УВЕЛИЧЕННЫЙ РАЗМЕР — 8% от высоты экрана
-                const statusBarHeight = h * 0.08;
-                const statusBarWidth = statusBarHeight * (imgWidth_n / imgHeight_n);
-
-                statusBar.style.left = x + 'px';
-                statusBar.style.top = y + 'px';
-                statusBar.style.width = statusBarWidth + 'px';
-                statusBar.style.height = statusBarHeight + 'px';
-
-                console.log('✅ Статусбар позиционирован:');
-                console.log(`  left: ${x}px`);
-                console.log(`  top: ${y}px`);
-                console.log(`  width: ${statusBarWidth}px`);
-                console.log(`  height: ${statusBarHeight}px`);
-                console.log(`  container: ${display.containerWidth}×${display.containerHeight}`);
-            }
-
             function drawOverlay(redArea, imgWidth, imgHeight) {
                 const display = getImageDisplayRect();
-                
+
                 canvas.width = display.containerWidth;
                 canvas.height = display.containerHeight;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -413,22 +432,18 @@
 
                 canvas.classList.add('visible');
 
-                // Позиционируем статусбар
-                if (statusBarLoaded) {
-                    positionStatusBar(redArea, imgWidth, imgHeight);
-                } else {
-                    statusBarImg.addEventListener('load', function() {
-                        statusBarLoaded = true;
-                        positionStatusBar(redArea, imgWidth, imgHeight);
-                    });
-                }
-
-                statusBar.classList.add('visible');
-
                 lastRedArea = redArea;
                 lastImgWidth = imgWidth;
                 lastImgHeight = imgHeight;
                 isReady = true;
+
+                // Показываем WP интерфейс
+                if (!isWpVisible) {
+                    isWpVisible = true;
+                    setTimeout(function() {
+                        wpContent.classList.add('visible');
+                    }, 100);
+                }
             }
 
             function processImage() {
@@ -450,7 +465,8 @@
 
                 if (!redArea) {
                     canvas.classList.remove('visible');
-                    statusBar.classList.remove('visible');
+                    wpContent.classList.remove('visible');
+                    isWpVisible = false;
                     img.classList.remove('visible');
                     setTimeout(processImage, 500);
                     return;
@@ -467,6 +483,7 @@
                 drawOverlay(lastRedArea, lastImgWidth, lastImgHeight);
             }
 
+            // ЗАПУСК
             if (img.complete) {
                 setTimeout(processImage, 100);
             } else {
@@ -477,7 +494,8 @@
 
             img.addEventListener('error', function() {
                 canvas.classList.remove('visible');
-                statusBar.classList.remove('visible');
+                wpContent.classList.remove('visible');
+                isWpVisible = false;
                 img.classList.remove('visible');
             });
 
