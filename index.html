@@ -37,159 +37,189 @@
             justify-content: center;
         }
 
-        .phone-frame svg {
+        .phone-frame img {
             width: 100%;
             height: 100%;
             max-width: 98vh;
             max-height: 98vh;
             display: block;
+            object-fit: contain;
         }
 
-        /* Экран поверх SVG */
+        /* Белый экран поверх красной области */
         .screen-overlay {
             position: absolute;
             background: white;
             pointer-events: none;
             border-radius: 2px;
-            /* Эти значения будут автоматически пересчитаны через JS */
             left: 0%;
             top: 0%;
             width: 0%;
             height: 0%;
+            transition: none;
+        }
+
+        /* Canvas для анализа (скрыт) */
+        #analysisCanvas {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="phone-frame" id="phoneFrame">
-            <!-- Рамка из SVG -->
-            <object id="frameSvg" data="main.svg" type="image/svg+xml"></object>
+            <!-- Картинка с рамкой, где экран залит КРАСНЫМ -->
+            <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
 
-            <!-- Белый экран поверх пустого места в рамке -->
+            <!-- Белый экран поверх красной области -->
             <div class="screen-overlay" id="screenOverlay"></div>
         </div>
     </div>
 
+    <!-- Скрытый canvas для анализа пикселей -->
+    <canvas id="analysisCanvas"></canvas>
+
     <script>
         (function() {
-            const frame = document.getElementById('phoneFrame');
+            const img = document.getElementById('frameImage');
             const overlay = document.getElementById('screenOverlay');
-            const svgObject = document.getElementById('frameSvg');
+            const canvas = document.getElementById('analysisCanvas');
+            const ctx = canvas.getContext('2d');
 
-            function getScreenBounds() {
-                // Получаем SVG документ
-                const svgDoc = svgObject.contentDocument;
-                if (!svgDoc) return null;
+            let isProcessing = false;
 
-                const svgElement = svgDoc.querySelector('svg');
-                if (!svgElement) return null;
+            function findRedArea(imageData, width, height) {
+                const data = imageData.data;
+                let minX = width,
+                    minY = height;
+                let maxX = 0,
+                    maxY = 0;
+                let foundRed = false;
 
-                // Получаем bounding box всех элементов в SVG
-                const allElements = svgElement.querySelectorAll('*');
-                let minX = Infinity,
-                    minY = Infinity;
-                let maxX = -Infinity,
-                    maxY = -Infinity;
+                // Порог для определения красного цвета
+                const redThreshold = 100;
+                const greenBlueThreshold = 100;
 
-                // Собираем все видимые элементы (исключая группы-контейнеры без геометрии)
-                const visibleElements = [];
-                allElements.forEach(el => {
-                    // Пропускаем элементы без геометрии (defs, clipPath и т.д.)
-                    const tag = el.tagName.toLowerCase();
-                    if (['defs', 'clipPath', 'mask', 'linearGradient', 'radialGradient', 'pattern', 'filter', 'title', 'desc'].includes(tag)) {
-                        return;
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const i = (y * width + x) * 4;
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        const a = data[i + 3];
+
+                        // Проверяем, является ли пиксель красным
+                        // Красный: r высокий, g и b низкие, и не прозрачный
+                        if (a > 128 && r > redThreshold && g < greenBlueThreshold && b < greenBlueThreshold) {
+                            if (x < minX) minX = x;
+                            if (y < minY) minY = y;
+                            if (x > maxX) maxX = x;
+                            if (y > maxY) maxY = y;
+                            foundRed = true;
+                        }
                     }
-                    // Проверяем есть ли у элемента геометрия
-                    const bbox = el.getBBox();
-                    if (bbox.width > 0 && bbox.height > 0) {
-                        visibleElements.push(el);
-                    }
-                });
-
-                if (visibleElements.length === 0) {
-                    // Если ничего не найдено — используем всю область SVG
-                    const svgRect = svgElement.getBoundingClientRect();
-                    const frameRect = frame.getBoundingClientRect();
-                    return {
-                        left: 0,
-                        top: 0,
-                        width: 100,
-                        height: 100
-                    };
                 }
 
-                // Находим минимальные и максимальные координаты
-                visibleElements.forEach(el => {
-                    const bbox = el.getBBox();
-                    // Учитываем transform
-                    const rect = el.getBoundingClientRect();
-                    const svgRect = svgElement.getBoundingClientRect();
+                if (!foundRed) {
+                    return null;
+                }
 
-                    // Получаем координаты относительно SVG
-                    const x1 = (rect.left - svgRect.left) / svgRect.width * 100;
-                    const y1 = (rect.top - svgRect.top) / svgRect.height * 100;
-                    const x2 = (rect.right - svgRect.left) / svgRect.width * 100;
-                    const y2 = (rect.bottom - svgRect.top) / svgRect.height * 100;
-
-                    if (x1 < minX) minX = x1;
-                    if (y1 < minY) minY = y1;
-                    if (x2 > maxX) maxX = x2;
-                    if (y2 > maxY) maxY = y2;
-                });
-
-                // Добавляем небольшой отступ (1%)
-                const padding = 1;
-                minX = Math.max(0, minX - padding);
-                minY = Math.max(0, minY - padding);
-                maxX = Math.min(100, maxX + padding);
-                maxY = Math.min(100, maxY + padding);
-
+                // Добавляем небольшой отступ (1px от края красной области)
+                const padding = 2;
                 return {
-                    left: minX,
-                    top: minY,
-                    width: maxX - minX,
-                    height: maxY - minY
+                    left: Math.max(0, minX - padding),
+                    top: Math.max(0, minY - padding),
+                    width: Math.min(width, maxX - minX + padding * 2),
+                    height: Math.min(height, maxY - minY + padding * 2)
                 };
             }
 
-            function updateScreen() {
-                const bounds = getScreenBounds();
-                if (!bounds) {
-                    // Если SVG не загружен — пробуем ещё раз через 100ms
-                    setTimeout(updateScreen, 100);
+            function processImage() {
+                if (isProcessing) return;
+                if (!img.complete || img.naturalWidth === 0) {
+                    setTimeout(processImage, 100);
                     return;
                 }
 
-                overlay.style.left = bounds.left + '%';
-                overlay.style.top = bounds.top + '%';
-                overlay.style.width = bounds.width + '%';
-                overlay.style.height = bounds.height + '%';
+                isProcessing = true;
 
-                console.log('📱 Размеры экрана (в % от SVG):');
-                console.log(`left: ${bounds.left.toFixed(2)}%`);
-                console.log(`top: ${bounds.top.toFixed(2)}%`);
-                console.log(`width: ${bounds.width.toFixed(2)}%`);
-                console.log(`height: ${bounds.height.toFixed(2)}%`);
+                // Получаем реальные размеры картинки
+                const imgWidth = img.naturalWidth;
+                const imgHeight = img.naturalHeight;
+
+                // Устанавливаем размеры canvas под картинку
+                canvas.width = imgWidth;
+                canvas.height = imgHeight;
+
+                // Рисуем картинку на canvas
+                ctx.clearRect(0, 0, imgWidth, imgHeight);
+                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+
+                // Получаем данные пикселей
+                const imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
+                const redArea = findRedArea(imageData, imgWidth, imgHeight);
+
+                if (!redArea) {
+                    console.warn('⚠️ Красная область не найдена! Убедись, что экран залит ярко-красным цветом.');
+                    // Показываем ошибку на оверлее
+                    overlay.style.background = 'rgba(255,0,0,0.3)';
+                    overlay.style.border = '2px dashed red';
+                    overlay.style.left = '10%';
+                    overlay.style.top = '10%';
+                    overlay.style.width = '80%';
+                    overlay.style.height = '80%';
+                    isProcessing = false;
+                    return;
+                }
+
+                // Получаем размеры отображения картинки на экране
+                const imgDisplayRect = img.getBoundingClientRect();
+                const containerRect = document.getElementById('phoneFrame').getBoundingClientRect();
+
+                // Вычисляем масштаб
+                const scaleX = imgDisplayRect.width / imgWidth;
+                const scaleY = imgDisplayRect.height / imgHeight;
+
+                // Вычисляем позицию красной области в процентах от контейнера
+                const leftPercent = ((redArea.left * scaleX + (imgDisplayRect.left - containerRect.left)) / containerRect.width) * 100;
+                const topPercent = ((redArea.top * scaleY + (imgDisplayRect.top - containerRect.top)) / containerRect.height) * 100;
+                const widthPercent = (redArea.width * scaleX / containerRect.width) * 100;
+                const heightPercent = (redArea.height * scaleY / containerRect.height) * 100;
+
+                // Применяем размеры к оверлею
+                overlay.style.left = leftPercent + '%';
+                overlay.style.top = topPercent + '%';
+                overlay.style.width = widthPercent + '%';
+                overlay.style.height = heightPercent + '%';
+                overlay.style.background = 'white';
+                overlay.style.border = 'none';
+
+                console.log('✅ Красная область найдена!');
+                console.log(`📐 left: ${leftPercent.toFixed(2)}%`);
+                console.log(`📐 top: ${topPercent.toFixed(2)}%`);
+                console.log(`📐 width: ${widthPercent.toFixed(2)}%`);
+                console.log(`📐 height: ${heightPercent.toFixed(2)}%`);
+                console.log(`🖼️ Размеры в пикселях: ${redArea.width}×${redArea.height}px`);
+
+                isProcessing = false;
             }
 
-            // Ждём загрузки SVG
-            svgObject.addEventListener('load', function() {
-                // Небольшая задержка для полной загрузки DOM
-                setTimeout(updateScreen, 50);
-            });
+            // Ждём загрузки картинки
+            if (img.complete) {
+                setTimeout(processImage, 100);
+            } else {
+                img.addEventListener('load', function() {
+                    setTimeout(processImage, 100);
+                });
+            }
 
             // Обновляем при ресайзе
             window.addEventListener('resize', function() {
-                setTimeout(updateScreen, 100);
+                setTimeout(processImage, 200);
             });
 
-            // Если SVG уже загружен
-            if (svgObject.contentDocument) {
-                setTimeout(updateScreen, 50);
-            }
-
-            // Дополнительная проверка через 2 секунды
-            setTimeout(updateScreen, 2000);
+            // Повторная попытка через 2 секунды
+            setTimeout(processImage, 2000);
         })();
     </script>
 </body>
