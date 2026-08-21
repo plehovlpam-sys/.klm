@@ -106,24 +106,14 @@
             let lastImgWidth = 0;
             let lastImgHeight = 0;
 
-            // === ОПРЕДЕЛЕНИЕ КРАСНОГО (максимально точное) ===
+            // === ОПРЕДЕЛЕНИЕ КРАСНОГО ===
             function isRed(r, g, b, a) {
-                // Прозрачные игнорируем
                 if (a < 30) return false;
-
-                // Чистый красный #FF0000 и его оттенки
-                // r должен быть высоким, g и b — низкими
                 const rHigh = r > 180;
                 const gLow = g < 80;
                 const bLow = b < 80;
-                
-                // Дополнительно: красный должен быть заметно ярче синего и зелёного
                 const redDominates = r > g + 50 && r > b + 50;
-                
-                // Яркость красного
-                const brightness = (r + g + b) / 3;
-                const isBrightEnough = brightness > 60;
-
+                const isBrightEnough = (r + g + b) / 3 > 60;
                 return rHigh && gLow && bLow && redDominates && isBrightEnough;
             }
 
@@ -135,8 +125,6 @@
                     maxY = 0;
                 let foundRed = false;
                 let redPixels = 0;
-
-                // Сканируем каждый 4-й пиксель для скорости
                 const step = 2;
 
                 for (let y = 0; y < height; y += step) {
@@ -158,12 +146,10 @@
                     }
                 }
 
-                // Если красных пикселей слишком мало — скорее всего ошибка
                 if (!foundRed || redPixels < 5) {
                     return null;
                 }
 
-                // Добавляем небольшой отступ
                 const padding = 2;
                 return {
                     left: Math.max(0, minX - padding),
@@ -174,16 +160,55 @@
                 };
             }
 
-            function drawOverlay(redArea, imgWidth, imgHeight, displayWidth, displayHeight) {
-                canvas.width = displayWidth;
-                canvas.height = displayHeight;
-                ctx.clearRect(0, 0, displayWidth, displayHeight);
+            function getImageDisplayRect() {
+                const imgRect = img.getBoundingClientRect();
+                const containerRect = document.getElementById('phoneFrame').getBoundingClientRect();
 
-                const scaleX = displayWidth / imgWidth;
-                const scaleY = displayHeight / imgHeight;
+                // Вычисляем видимую область картинки с учетом object-fit: contain
+                const imgAspect = img.naturalWidth / img.naturalHeight;
+                const containerAspect = containerRect.width / containerRect.height;
 
-                const x = redArea.left * scaleX;
-                const y = redArea.top * scaleY;
+                let displayWidth, displayHeight, offsetX, offsetY;
+
+                if (imgAspect > containerAspect) {
+                    // Картинка шире контейнера — подгоняем по ширине
+                    displayWidth = containerRect.width;
+                    displayHeight = containerRect.width / imgAspect;
+                    offsetX = 0;
+                    offsetY = (containerRect.height - displayHeight) / 2;
+                } else {
+                    // Картинка выше контейнера — подгоняем по высоте
+                    displayHeight = containerRect.height;
+                    displayWidth = containerRect.height * imgAspect;
+                    offsetX = (containerRect.width - displayWidth) / 2;
+                    offsetY = 0;
+                }
+
+                return {
+                    left: offsetX,
+                    top: offsetY,
+                    width: displayWidth,
+                    height: displayHeight,
+                    containerWidth: containerRect.width,
+                    containerHeight: containerRect.height
+                };
+            }
+
+            function drawOverlay(redArea, imgWidth, imgHeight) {
+                const display = getImageDisplayRect();
+                
+                // Устанавливаем размер канваса равным контейнеру
+                canvas.width = display.containerWidth;
+                canvas.height = display.containerHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Масштаб отображения (относительно видимой области)
+                const scaleX = display.width / imgWidth;
+                const scaleY = display.height / imgHeight;
+
+                // Координаты красной области в пикселях отображения
+                const x = display.left + redArea.left * scaleX;
+                const y = display.top + redArea.top * scaleY;
                 const w = redArea.width * scaleX;
                 const h = redArea.height * scaleY;
 
@@ -192,23 +217,33 @@
                 ctx.fillRect(x, y, w, h);
 
                 // Красная рамка для проверки
-                ctx.strokeStyle = 'rgba(255,0,0,0.5)';
+                ctx.strokeStyle = 'rgba(255,0,0,0.7)';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x, y, w, h);
 
-                // Информация в углу
-                ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                ctx.fillRect(10, 10, 200, 60);
+                // Информация на канвасе
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(10, 10, 220, 50);
                 ctx.fillStyle = '#00ff00';
-                ctx.font = '11px monospace';
-                ctx.fillText(`📐 ${(w/displayWidth*100).toFixed(1)}% × ${(h/displayHeight*100).toFixed(1)}%`, 18, 30);
-                ctx.fillText(`🖼️ ${redArea.pixels} красных пикселей`, 18, 50);
+                ctx.font = '12px monospace';
+                const leftPercent = (x / canvas.width * 100);
+                const topPercent = (y / canvas.height * 100);
+                const widthPercent = (w / canvas.width * 100);
+                const heightPercent = (h / canvas.height * 100);
+                ctx.fillText(`📐 left: ${leftPercent.toFixed(2)}%  top: ${topPercent.toFixed(2)}%`, 18, 30);
+                ctx.fillText(`📐 width: ${widthPercent.toFixed(2)}%  height: ${heightPercent.toFixed(2)}%`, 18, 48);
 
                 debug.innerHTML = 
                     `<span class="ok">✅ Красная область найдена!</span>\n` +
-                    `📐 left: ${(x / displayWidth * 100).toFixed(2)}%  top: ${(y / displayHeight * 100).toFixed(2)}%\n` +
-                    `📐 width: ${(w / displayWidth * 100).toFixed(2)}%  height: ${(h / displayHeight * 100).toFixed(2)}%\n` +
+                    `📐 left: ${leftPercent.toFixed(2)}%  top: ${topPercent.toFixed(2)}%\n` +
+                    `📐 width: ${widthPercent.toFixed(2)}%  height: ${heightPercent.toFixed(2)}%\n` +
                     `🖼️ ${redArea.width}×${redArea.height}px (в PNG) | ${redArea.pixels} красных пикселей`;
+
+                console.log('✅ Красная область найдена!');
+                console.log(`left: ${leftPercent.toFixed(2)}%`);
+                console.log(`top: ${topPercent.toFixed(2)}%`);
+                console.log(`width: ${widthPercent.toFixed(2)}%`);
+                console.log(`height: ${heightPercent.toFixed(2)}%`);
 
                 // Сохраняем для ресайза
                 lastRedArea = redArea;
@@ -240,41 +275,29 @@
                         `<span class="err">❌ Красная область не найдена!</span>\n` +
                         `Убедись, что экран залит ярко-КРАСНЫМ (#FF0000)`;
                     
-                    const rect = img.getBoundingClientRect();
-                    canvas.width = rect.width;
-                    canvas.height = rect.height;
+                    const display = getImageDisplayRect();
+                    canvas.width = display.containerWidth;
+                    canvas.height = display.containerHeight;
                     ctx.fillStyle = 'rgba(255,0,0,0.1)';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.strokeStyle = '#FF0000';
                     ctx.lineWidth = 2;
                     ctx.setLineDash([5, 5]);
-                    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+                    const margin = 20;
+                    ctx.strokeRect(margin, margin, canvas.width - margin * 2, canvas.height - margin * 2);
                     ctx.setLineDash([]);
                     return;
                 }
 
-                const rect = img.getBoundingClientRect();
-                const displayWidth = rect.width;
-                const displayHeight = rect.height;
-
-                drawOverlay(redArea, imgWidth, imgHeight, displayWidth, displayHeight);
+                drawOverlay(redArea, imgWidth, imgHeight);
             }
 
-            // === ОБРАБОТКА РЕСАЙЗА (сохранение пропорций) ===
             function handleResize() {
                 if (!lastRedArea) {
                     processImage();
                     return;
                 }
-
-                const rect = img.getBoundingClientRect();
-                const displayWidth = rect.width;
-                const displayHeight = rect.height;
-
-                // Если размеры изменились — перерисовываем
-                if (displayWidth > 0 && displayHeight > 0) {
-                    drawOverlay(lastRedArea, lastImgWidth, lastImgHeight, displayWidth, displayHeight);
-                }
+                drawOverlay(lastRedArea, lastImgWidth, lastImgHeight);
             }
 
             // === ЗАПУСК ===
@@ -290,14 +313,12 @@
                 debug.innerHTML = '<span class="err">❌ Ошибка загрузки df.png!\nПроверь путь к файлу.</span>';
             });
 
-            // Ресайз с debounce
             let resizeTimer;
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(handleResize, 150);
+                resizeTimer = setTimeout(handleResize, 100);
             });
 
-            // Ориентация
             window.addEventListener('orientationchange', function() {
                 setTimeout(handleResize, 400);
             });
