@@ -24,7 +24,6 @@
             font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
         }
 
-        /* Градиент */
         @media (orientation: portrait) and (max-width: 768px) {
             body {
                 background: radial-gradient(circle at center, #7b00b3 0%, #4a0066 35%, #2b003d 65%, #000000 90%);
@@ -114,7 +113,7 @@
             flex-direction: column;
             align-items: center;
             background: #000;
-            padding: 24px 20px 30px;
+            padding: 20px 20px 30px;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
@@ -134,23 +133,26 @@
 
         .wp-content .title {
             font-family: 'Segoe UI', sans-serif;
-            font-size: 48px;
+            font-size: 44px;
             font-weight: 300;
             color: #fff;
             letter-spacing: -1px;
             text-transform: lowercase;
-            margin-top: 30px;
-            margin-bottom: 8px;
+            margin-top: 20px;
+            margin-bottom: 6px;
             line-height: 1;
+            text-align: center;
         }
 
         .wp-content .image-wrap {
-            margin: 8px 0 20px 0;
+            width: 100%;
+            padding: 4px 12px 12px 12px;
             line-height: 0;
+            flex-shrink: 0;
         }
 
         .wp-content .image-wrap img {
-            width: 100px;
+            width: 100%;
             height: auto;
             display: block;
             border-radius: 0;
@@ -165,6 +167,7 @@
             width: 100%;
             max-width: 200px;
             margin-top: 4px;
+            flex-shrink: 0;
         }
 
         .wp-content .buttons a {
@@ -194,19 +197,20 @@
 
         .wp-content .spacer {
             flex: 1;
-            min-height: 20px;
+            min-height: 10px;
         }
 
         .wp-content .bottom-text {
             font-family: 'Segoe UI', sans-serif;
             font-size: 10px;
-            color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.12);
             text-align: center;
             text-transform: lowercase;
             letter-spacing: 0.5px;
-            margin-top: 20px;
-            padding-bottom: 10px;
+            margin-top: 16px;
+            padding-bottom: 6px;
             line-height: 1.4;
+            flex-shrink: 0;
         }
 
         /* ===== ПОВОРОТ И ДЕСКТОП ===== */
@@ -322,7 +326,7 @@
             <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
             <canvas id="overlayCanvas"></canvas>
 
-            <!-- WP8 ИНТЕРФЕЙС (ВНУТРИ БОКСА, ЧЁРНЫЙ ФОН, СКРОЛЛ) -->
+            <!-- WP8 ИНТЕРФЕЙС -->
             <div class="wp-content" id="wpContent">
                 <div class="title">heyyy</div>
                 <div class="image-wrap">
@@ -454,7 +458,7 @@
                 const w = redArea.width * scaleX;
                 const h = redArea.height * scaleY;
 
-                // БЕЛЫЙ БОКС (фон для контента)
+                // БЕЛЫЙ БОКС
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(x, y, w, h);
 
@@ -516,7 +520,6 @@
                 drawOverlay(lastRedArea, lastImgWidth, lastImgHeight);
             }
 
-            // ЗАПУСК
             if (img.complete) {
                 setTimeout(processImage, 100);
             } else {
