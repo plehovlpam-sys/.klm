@@ -58,28 +58,13 @@
             pointer-events: none;
             display: block;
             object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .debug-info {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.85);
-            color: #0f0;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font: 12px monospace;
-            z-index: 100;
-            text-align: center;
-            border: 1px solid #333;
-            pointer-events: none;
-            white-space: pre;
-            max-width: 92%;
-            line-height: 1.5;
+        #overlayCanvas.visible {
+            opacity: 1;
         }
-        .debug-info .err { color: #ff6666; }
-        .debug-info .ok { color: #66ff66; }
     </style>
 </head>
 <body>
@@ -90,14 +75,11 @@
         </div>
     </div>
 
-    <div class="debug-info" id="debugInfo">⏳ Анализ изображения...</div>
-
     <script>
         (function() {
             const img = document.getElementById('frameImage');
             const canvas = document.getElementById('overlayCanvas');
             const ctx = canvas.getContext('2d');
-            const debug = document.getElementById('debugInfo');
 
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
@@ -105,8 +87,8 @@
             let lastRedArea = null;
             let lastImgWidth = 0;
             let lastImgHeight = 0;
+            let isReady = false;
 
-            // === ОПРЕДЕЛЕНИЕ КРАСНОГО ===
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
                 const rHigh = r > 180;
@@ -164,20 +146,17 @@
                 const imgRect = img.getBoundingClientRect();
                 const containerRect = document.getElementById('phoneFrame').getBoundingClientRect();
 
-                // Вычисляем видимую область картинки с учетом object-fit: contain
                 const imgAspect = img.naturalWidth / img.naturalHeight;
                 const containerAspect = containerRect.width / containerRect.height;
 
                 let displayWidth, displayHeight, offsetX, offsetY;
 
                 if (imgAspect > containerAspect) {
-                    // Картинка шире контейнера — подгоняем по ширине
                     displayWidth = containerRect.width;
                     displayHeight = containerRect.width / imgAspect;
                     offsetX = 0;
                     offsetY = (containerRect.height - displayHeight) / 2;
                 } else {
-                    // Картинка выше контейнера — подгоняем по высоте
                     displayHeight = containerRect.height;
                     displayWidth = containerRect.height * imgAspect;
                     offsetX = (containerRect.width - displayWidth) / 2;
@@ -197,63 +176,31 @@
             function drawOverlay(redArea, imgWidth, imgHeight) {
                 const display = getImageDisplayRect();
                 
-                // Устанавливаем размер канваса равным контейнеру
                 canvas.width = display.containerWidth;
                 canvas.height = display.containerHeight;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // Масштаб отображения (относительно видимой области)
                 const scaleX = display.width / imgWidth;
                 const scaleY = display.height / imgHeight;
 
-                // Координаты красной области в пикселях отображения
                 const x = display.left + redArea.left * scaleX;
                 const y = display.top + redArea.top * scaleY;
                 const w = redArea.width * scaleX;
                 const h = redArea.height * scaleY;
 
-                // Белый экран
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(x, y, w, h);
 
-                // Красная рамка для проверки
-                ctx.strokeStyle = 'rgba(255,0,0,0.7)';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, w, h);
+                canvas.classList.add('visible');
 
-                // Информация на канвасе
-                ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                ctx.fillRect(10, 10, 220, 50);
-                ctx.fillStyle = '#00ff00';
-                ctx.font = '12px monospace';
-                const leftPercent = (x / canvas.width * 100);
-                const topPercent = (y / canvas.height * 100);
-                const widthPercent = (w / canvas.width * 100);
-                const heightPercent = (h / canvas.height * 100);
-                ctx.fillText(`📐 left: ${leftPercent.toFixed(2)}%  top: ${topPercent.toFixed(2)}%`, 18, 30);
-                ctx.fillText(`📐 width: ${widthPercent.toFixed(2)}%  height: ${heightPercent.toFixed(2)}%`, 18, 48);
-
-                debug.innerHTML = 
-                    `<span class="ok">✅ Красная область найдена!</span>\n` +
-                    `📐 left: ${leftPercent.toFixed(2)}%  top: ${topPercent.toFixed(2)}%\n` +
-                    `📐 width: ${widthPercent.toFixed(2)}%  height: ${heightPercent.toFixed(2)}%\n` +
-                    `🖼️ ${redArea.width}×${redArea.height}px (в PNG) | ${redArea.pixels} красных пикселей`;
-
-                console.log('✅ Красная область найдена!');
-                console.log(`left: ${leftPercent.toFixed(2)}%`);
-                console.log(`top: ${topPercent.toFixed(2)}%`);
-                console.log(`width: ${widthPercent.toFixed(2)}%`);
-                console.log(`height: ${heightPercent.toFixed(2)}%`);
-
-                // Сохраняем для ресайза
                 lastRedArea = redArea;
                 lastImgWidth = imgWidth;
                 lastImgHeight = imgHeight;
+                isReady = true;
             }
 
             function processImage() {
                 if (!img.complete || img.naturalWidth === 0) {
-                    debug.innerHTML = '⏳ Загрузка изображения...';
                     setTimeout(processImage, 200);
                     return;
                 }
@@ -261,7 +208,6 @@
                 const imgWidth = img.naturalWidth;
                 const imgHeight = img.naturalHeight;
 
-                // Анализируем картинку
                 analysisCanvas.width = imgWidth;
                 analysisCanvas.height = imgHeight;
                 analysisCtx.clearRect(0, 0, imgWidth, imgHeight);
@@ -271,21 +217,8 @@
                 const redArea = findRedArea(imageData, imgWidth, imgHeight);
 
                 if (!redArea) {
-                    debug.innerHTML = 
-                        `<span class="err">❌ Красная область не найдена!</span>\n` +
-                        `Убедись, что экран залит ярко-КРАСНЫМ (#FF0000)`;
-                    
-                    const display = getImageDisplayRect();
-                    canvas.width = display.containerWidth;
-                    canvas.height = display.containerHeight;
-                    ctx.fillStyle = 'rgba(255,0,0,0.1)';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.strokeStyle = '#FF0000';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([5, 5]);
-                    const margin = 20;
-                    ctx.strokeRect(margin, margin, canvas.width - margin * 2, canvas.height - margin * 2);
-                    ctx.setLineDash([]);
+                    canvas.classList.remove('visible');
+                    setTimeout(processImage, 500);
                     return;
                 }
 
@@ -293,14 +226,13 @@
             }
 
             function handleResize() {
-                if (!lastRedArea) {
-                    processImage();
+                if (!isReady || !lastRedArea) {
                     return;
                 }
                 drawOverlay(lastRedArea, lastImgWidth, lastImgHeight);
             }
 
-            // === ЗАПУСК ===
+            // ЗАПУСК
             if (img.complete) {
                 setTimeout(processImage, 100);
             } else {
@@ -310,7 +242,7 @@
             }
 
             img.addEventListener('error', function() {
-                debug.innerHTML = '<span class="err">❌ Ошибка загрузки df.png!\nПроверь путь к файлу.</span>';
+                canvas.classList.remove('visible');
             });
 
             let resizeTimer;
