@@ -100,13 +100,14 @@
             opacity: 1;
         }
 
-        /* СТАТУС БАР - поверх канваса */
+        /* СТАТУС БАР — ПОВЫШЕННЫЙ Z-INDEX */
         #statusBar {
             position: absolute;
-            z-index: 3;
+            z-index: 10;
             opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
+            display: block;
         }
 
         #statusBar.visible {
@@ -244,6 +245,7 @@
             const canvas = document.getElementById('overlayCanvas');
             const ctx = canvas.getContext('2d');
             const statusBar = document.getElementById('statusBar');
+            const statusBarImg = statusBar.querySelector('img');
 
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
@@ -252,6 +254,21 @@
             let lastImgWidth = 0;
             let lastImgHeight = 0;
             let isReady = false;
+            let statusBarLoaded = false;
+
+            // Ждём загрузки статусбара
+            if (statusBarImg) {
+                if (statusBarImg.complete) {
+                    statusBarLoaded = true;
+                } else {
+                    statusBarImg.addEventListener('load', function() {
+                        statusBarLoaded = true;
+                        if (isReady) {
+                            positionStatusBar(lastRedArea, lastImgWidth, lastImgHeight);
+                        }
+                    });
+                }
+            }
 
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
@@ -337,6 +354,38 @@
                 };
             }
 
+            function positionStatusBar(redArea, imgWidth, imgHeight) {
+                if (!statusBarLoaded) return;
+
+                const display = getImageDisplayRect();
+                const scaleX = display.width / imgWidth;
+                const scaleY = display.height / imgHeight;
+
+                const x = display.left + redArea.left * scaleX;
+                const y = display.top + redArea.top * scaleY;
+                const w = redArea.width * scaleX;
+                const h = redArea.height * scaleY;
+
+                const imgWidth_n = statusBarImg.naturalWidth;
+                const imgHeight_n = statusBarImg.naturalHeight;
+
+                // Статусбар занимает ~5% высоты экрана
+                const statusBarHeight = h * 0.05;
+                const statusBarWidth = statusBarHeight * (imgWidth_n / imgHeight_n);
+
+                statusBar.style.left = x + 'px';
+                statusBar.style.top = y + 'px';
+                statusBar.style.width = statusBarWidth + 'px';
+                statusBar.style.height = statusBarHeight + 'px';
+
+                console.log('✅ Статусбар позиционирован:', {
+                    left: x,
+                    top: y,
+                    width: statusBarWidth,
+                    height: statusBarHeight
+                });
+            }
+
             function drawOverlay(redArea, imgWidth, imgHeight) {
                 const display = getImageDisplayRect();
                 
@@ -352,64 +401,28 @@
                 const w = redArea.width * scaleX;
                 const h = redArea.height * scaleY;
 
-                // Белый экран
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(x, y, w, h);
 
-                // === СТАТУС БАР ===
-                // Позиционируем статусбар в левом верхнем углу белой области
-                const statusBarImg = statusBar.querySelector('img');
-                if (statusBarImg) {
+                canvas.classList.add('visible');
+
+                // Позиционируем статусбар
+                if (statusBarLoaded) {
+                    positionStatusBar(redArea, imgWidth, imgHeight);
+                } else {
                     // Ждём загрузки статусбара
-                    if (statusBarImg.complete) {
-                        positionStatusBar(x, y, w, display);
-                    } else {
-                        statusBarImg.addEventListener('load', function() {
-                            positionStatusBar(x, y, w, display);
-                        });
-                    }
-                    // Если уже загружен — позиционируем сразу
-                    if (statusBarImg.complete) {
-                        positionStatusBar(x, y, w, display);
-                    }
+                    statusBarImg.addEventListener('load', function() {
+                        statusBarLoaded = true;
+                        positionStatusBar(redArea, imgWidth, imgHeight);
+                    });
                 }
 
-                canvas.classList.add('visible');
                 statusBar.classList.add('visible');
 
                 lastRedArea = redArea;
                 lastImgWidth = imgWidth;
                 lastImgHeight = imgHeight;
                 isReady = true;
-            }
-
-            function positionStatusBar(x, y, w, display) {
-                const statusBarImg = statusBar.querySelector('img');
-                if (!statusBarImg) return;
-
-                // Ждём загрузки картинки статусбара
-                if (!statusBarImg.complete) {
-                    statusBarImg.addEventListener('load', function() {
-                        positionStatusBar(x, y, w, display);
-                    });
-                    return;
-                }
-
-                const imgWidth = statusBarImg.naturalWidth;
-                const imgHeight = statusBarImg.naturalHeight;
-
-                // Статусбар занимает ~6% высоты экрана
-                const statusBarHeight = w * 0.06; // 6% от ширины экрана
-                const statusBarWidth = statusBarHeight * (imgWidth / imgHeight);
-
-                // Позиционируем в левом верхнем углу экрана
-                const leftPos = x;
-                const topPos = y;
-
-                statusBar.style.left = leftPos + 'px';
-                statusBar.style.top = topPos + 'px';
-                statusBar.style.width = statusBarWidth + 'px';
-                statusBar.style.height = statusBarHeight + 'px';
             }
 
             function processImage() {
