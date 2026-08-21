@@ -37,7 +37,6 @@
             justify-content: center;
         }
 
-        /* Картинка с рамкой */
         .phone-frame img {
             width: 100%;
             height: 100%;
@@ -49,7 +48,6 @@
             z-index: 1;
         }
 
-        /* Канвас поверх картинки для рисования белого экрана */
         #overlayCanvas {
             position: absolute;
             width: 100%;
@@ -101,9 +99,33 @@
             const ctx = canvas.getContext('2d');
             const debug = document.getElementById('debugInfo');
 
-            // Скрытый канвас для анализа
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
+
+            let lastRedArea = null;
+            let lastImgWidth = 0;
+            let lastImgHeight = 0;
+
+            // === ОПРЕДЕЛЕНИЕ КРАСНОГО (максимально точное) ===
+            function isRed(r, g, b, a) {
+                // Прозрачные игнорируем
+                if (a < 30) return false;
+
+                // Чистый красный #FF0000 и его оттенки
+                // r должен быть высоким, g и b — низкими
+                const rHigh = r > 180;
+                const gLow = g < 80;
+                const bLow = b < 80;
+                
+                // Дополнительно: красный должен быть заметно ярче синего и зелёного
+                const redDominates = r > g + 50 && r > b + 50;
+                
+                // Яркость красного
+                const brightness = (r + g + b) / 3;
+                const isBrightEnough = brightness > 60;
+
+                return rHigh && gLow && bLow && redDominates && isBrightEnough;
+            }
 
             function findRedArea(imageData, width, height) {
                 const data = imageData.data;
@@ -114,20 +136,18 @@
                 let foundRed = false;
                 let redPixels = 0;
 
-                for (let y = 0; y < height; y++) {
-                    for (let x = 0; x < width; x++) {
+                // Сканируем каждый 4-й пиксель для скорости
+                const step = 2;
+
+                for (let y = 0; y < height; y += step) {
+                    for (let x = 0; x < width; x += step) {
                         const i = (y * width + x) * 4;
                         const r = data[i];
                         const g = data[i + 1];
                         const b = data[i + 2];
                         const a = data[i + 3];
 
-                        if (a < 10) continue;
-
-                        // Ярко-красный
-                        const isRed = (r > 200 && g < 60 && b < 60);
-
-                        if (isRed) {
+                        if (isRed(r, g, b, a)) {
                             redPixels++;
                             if (x < minX) minX = x;
                             if (y < minY) minY = y;
@@ -138,11 +158,13 @@
                     }
                 }
 
-                if (!foundRed || redPixels < 10) {
+                // Если красных пикселей слишком мало — скорее всего ошибка
+                if (!foundRed || redPixels < 5) {
                     return null;
                 }
 
-                const padding = 1;
+                // Добавляем небольшой отступ
+                const padding = 2;
                 return {
                     left: Math.max(0, minX - padding),
                     top: Math.max(0, minY - padding),
@@ -153,29 +175,34 @@
             }
 
             function drawOverlay(redArea, imgWidth, imgHeight, displayWidth, displayHeight) {
-                // Очищаем канвас
                 canvas.width = displayWidth;
                 canvas.height = displayHeight;
                 ctx.clearRect(0, 0, displayWidth, displayHeight);
 
-                // Масштаб отображения
                 const scaleX = displayWidth / imgWidth;
                 const scaleY = displayHeight / imgHeight;
 
-                // Координаты красной области в пикселях отображения
                 const x = redArea.left * scaleX;
                 const y = redArea.top * scaleY;
                 const w = redArea.width * scaleX;
                 const h = redArea.height * scaleY;
 
-                // Рисуем белый прямоугольник
+                // Белый экран
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(x, y, w, h);
 
-                // Рисуем красную рамку для проверки (видно где область)
-                ctx.strokeStyle = '#FF0000';
+                // Красная рамка для проверки
+                ctx.strokeStyle = 'rgba(255,0,0,0.5)';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x, y, w, h);
+
+                // Информация в углу
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(10, 10, 200, 60);
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '11px monospace';
+                ctx.fillText(`📐 ${(w/displayWidth*100).toFixed(1)}% × ${(h/displayHeight*100).toFixed(1)}%`, 18, 30);
+                ctx.fillText(`🖼️ ${redArea.pixels} красных пикселей`, 18, 50);
 
                 debug.innerHTML = 
                     `<span class="ok">✅ Красная область найдена!</span>\n` +
@@ -183,11 +210,10 @@
                     `📐 width: ${(w / displayWidth * 100).toFixed(2)}%  height: ${(h / displayHeight * 100).toFixed(2)}%\n` +
                     `🖼️ ${redArea.width}×${redArea.height}px (в PNG) | ${redArea.pixels} красных пикселей`;
 
-                console.log('✅ Красная область найдена!');
-                console.log(`left: ${(x / displayWidth * 100).toFixed(2)}%`);
-                console.log(`top: ${(y / displayHeight * 100).toFixed(2)}%`);
-                console.log(`width: ${(w / displayWidth * 100).toFixed(2)}%`);
-                console.log(`height: ${(h / displayHeight * 100).toFixed(2)}%`);
+                // Сохраняем для ресайза
+                lastRedArea = redArea;
+                lastImgWidth = imgWidth;
+                lastImgHeight = imgHeight;
             }
 
             function processImage() {
@@ -212,14 +238,12 @@
                 if (!redArea) {
                     debug.innerHTML = 
                         `<span class="err">❌ Красная область не найдена!</span>\n` +
-                        `Убедись, что экран залит ярко-КРАСНЫМ (#FF0000)\n` +
-                        `и в PNG нет других красных элементов.`;
+                        `Убедись, что экран залит ярко-КРАСНЫМ (#FF0000)`;
                     
-                    // Рисуем заглушку для проверки
                     const rect = img.getBoundingClientRect();
                     canvas.width = rect.width;
                     canvas.height = rect.height;
-                    ctx.fillStyle = 'rgba(255,0,0,0.2)';
+                    ctx.fillStyle = 'rgba(255,0,0,0.1)';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.strokeStyle = '#FF0000';
                     ctx.lineWidth = 2;
@@ -229,43 +253,28 @@
                     return;
                 }
 
-                // Рисуем на канвасе поверх картинки
                 const rect = img.getBoundingClientRect();
                 const displayWidth = rect.width;
                 const displayHeight = rect.height;
 
-                // Устанавливаем размер канваса как у картинки
-                canvas.width = displayWidth;
-                canvas.height = displayHeight;
+                drawOverlay(redArea, imgWidth, imgHeight, displayWidth, displayHeight);
+            }
 
-                // Рисуем белый экран
-                const scaleX = displayWidth / imgWidth;
-                const scaleY = displayHeight / imgHeight;
+            // === ОБРАБОТКА РЕСАЙЗА (сохранение пропорций) ===
+            function handleResize() {
+                if (!lastRedArea) {
+                    processImage();
+                    return;
+                }
 
-                const x = redArea.left * scaleX;
-                const y = redArea.top * scaleY;
-                const w = redArea.width * scaleX;
-                const h = redArea.height * scaleY;
+                const rect = img.getBoundingClientRect();
+                const displayWidth = rect.width;
+                const displayHeight = rect.height;
 
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(x, y, w, h);
-
-                // Красная рамка для визуальной проверки
-                ctx.strokeStyle = '#FF0000';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, w, h);
-
-                debug.innerHTML = 
-                    `<span class="ok">✅ Красная область найдена!</span>\n` +
-                    `📐 left: ${(x / displayWidth * 100).toFixed(2)}%  top: ${(y / displayHeight * 100).toFixed(2)}%\n` +
-                    `📐 width: ${(w / displayWidth * 100).toFixed(2)}%  height: ${(h / displayHeight * 100).toFixed(2)}%\n` +
-                    `🖼️ ${redArea.width}×${redArea.height}px (в PNG) | ${redArea.pixels} красных пикселей`;
-
-                console.log('✅ Красная область найдена!');
-                console.log(`left: ${(x / displayWidth * 100).toFixed(2)}%`);
-                console.log(`top: ${(y / displayHeight * 100).toFixed(2)}%`);
-                console.log(`width: ${(w / displayWidth * 100).toFixed(2)}%`);
-                console.log(`height: ${(h / displayHeight * 100).toFixed(2)}%`);
+                // Если размеры изменились — перерисовываем
+                if (displayWidth > 0 && displayHeight > 0) {
+                    drawOverlay(lastRedArea, lastImgWidth, lastImgHeight, displayWidth, displayHeight);
+                }
             }
 
             // === ЗАПУСК ===
@@ -281,8 +290,16 @@
                 debug.innerHTML = '<span class="err">❌ Ошибка загрузки df.png!\nПроверь путь к файлу.</span>';
             });
 
+            // Ресайз с debounce
+            let resizeTimer;
             window.addEventListener('resize', function() {
-                setTimeout(processImage, 300);
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(handleResize, 150);
+            });
+
+            // Ориентация
+            window.addEventListener('orientationchange', function() {
+                setTimeout(handleResize, 400);
             });
 
             setTimeout(processImage, 3000);
