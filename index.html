@@ -100,7 +100,7 @@
             opacity: 1;
         }
 
-        /* СТАТУС БАР — ПОВЫШЕННЫЙ Z-INDEX */
+        /* СТАТУС БАР — увеличенный размер и отладка */
         #statusBar {
             position: absolute;
             z-index: 10;
@@ -108,6 +108,9 @@
             transition: opacity 0.3s ease;
             pointer-events: none;
             display: block;
+            /* ВРЕМЕННЫЙ КРАСНЫЙ ФОН ДЛЯ ОТЛАДКИ */
+            background: rgba(255, 0, 0, 0.3);
+            border: 2px solid red;
         }
 
         #statusBar.visible {
@@ -116,8 +119,9 @@
 
         #statusBar img {
             width: 100%;
-            height: auto;
+            height: 100%;
             display: block;
+            object-fit: contain;
         }
 
         .rotate-message {
@@ -256,14 +260,14 @@
             let isReady = false;
             let statusBarLoaded = false;
 
-            // Ждём загрузки статусбара
             if (statusBarImg) {
                 if (statusBarImg.complete) {
                     statusBarLoaded = true;
                 } else {
                     statusBarImg.addEventListener('load', function() {
                         statusBarLoaded = true;
-                        if (isReady) {
+                        console.log('✅ Статусбар загружен');
+                        if (isReady && lastRedArea) {
                             positionStatusBar(lastRedArea, lastImgWidth, lastImgHeight);
                         }
                     });
@@ -355,7 +359,10 @@
             }
 
             function positionStatusBar(redArea, imgWidth, imgHeight) {
-                if (!statusBarLoaded) return;
+                if (!statusBarLoaded) {
+                    console.warn('⏳ Статусбар ещё не загружен');
+                    return;
+                }
 
                 const display = getImageDisplayRect();
                 const scaleX = display.width / imgWidth;
@@ -369,8 +376,8 @@
                 const imgWidth_n = statusBarImg.naturalWidth;
                 const imgHeight_n = statusBarImg.naturalHeight;
 
-                // Статусбар занимает ~5% высоты экрана
-                const statusBarHeight = h * 0.05;
+                // УВЕЛИЧЕННЫЙ РАЗМЕР — 8% от высоты экрана
+                const statusBarHeight = h * 0.08;
                 const statusBarWidth = statusBarHeight * (imgWidth_n / imgHeight_n);
 
                 statusBar.style.left = x + 'px';
@@ -378,12 +385,12 @@
                 statusBar.style.width = statusBarWidth + 'px';
                 statusBar.style.height = statusBarHeight + 'px';
 
-                console.log('✅ Статусбар позиционирован:', {
-                    left: x,
-                    top: y,
-                    width: statusBarWidth,
-                    height: statusBarHeight
-                });
+                console.log('✅ Статусбар позиционирован:');
+                console.log(`  left: ${x}px`);
+                console.log(`  top: ${y}px`);
+                console.log(`  width: ${statusBarWidth}px`);
+                console.log(`  height: ${statusBarHeight}px`);
+                console.log(`  container: ${display.containerWidth}×${display.containerHeight}`);
             }
 
             function drawOverlay(redArea, imgWidth, imgHeight) {
@@ -410,7 +417,6 @@
                 if (statusBarLoaded) {
                     positionStatusBar(redArea, imgWidth, imgHeight);
                 } else {
-                    // Ждём загрузки статусбара
                     statusBarImg.addEventListener('load', function() {
                         statusBarLoaded = true;
                         positionStatusBar(redArea, imgWidth, imgHeight);
