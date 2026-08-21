@@ -46,6 +46,12 @@
             object-fit: contain;
             position: relative;
             z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .phone-frame img.visible {
+            opacity: 1;
         }
 
         #overlayCanvas {
@@ -218,10 +224,13 @@
 
                 if (!redArea) {
                     canvas.classList.remove('visible');
+                    img.classList.remove('visible');
                     setTimeout(processImage, 500);
                     return;
                 }
 
+                // Показываем рамку и канвас одновременно
+                img.classList.add('visible');
                 drawOverlay(redArea, imgWidth, imgHeight);
             }
 
@@ -243,6 +252,7 @@
 
             img.addEventListener('error', function() {
                 canvas.classList.remove('visible');
+                img.classList.remove('visible');
             });
 
             let resizeTimer;
