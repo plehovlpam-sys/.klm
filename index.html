@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Phone Frame</title>
     <style>
         * {
@@ -27,33 +27,35 @@
             align-items: center;
             justify-content: center;
         }
-        .phone-frame-img {
-            position: absolute;
+        .phone-frame {
             width: auto;
             height: auto;
-            max-width: 95%;
-            max-height: 95%;
-            object-fit: contain;
-            pointer-events: none;
-            user-select: none;
-            -webkit-user-drag: none;
-        }
-        .screen-overlay {
-            position: absolute;
-            left: 39.85%;
-            top: 13.03%;
-            width: 20.45%;
-            height: 67.77%;
-            background: white;
-            overflow: hidden;
-            pointer-events: none;
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="df.png" alt="Phone Frame" class="phone-frame-img" />
-        <div class="screen-overlay"></div>
+        <svg class="phone-frame" viewBox="0 0 400 800" xmlns="http://www.w3.org/2000/svg">
+            <!-- Сначала вставляем твою рамку (main.svg) -->
+            <image href="main.svg" x="0" y="0" width="100%" height="100%" />
+            
+            <!-- Затем вставляем контент (белый фон) внутрь экрана -->
+            <!-- Нужно подогнать координаты под твою рамку! -->
+            <foreignObject x="25" y="60" width="350" height="700">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="
+                    width: 100%;
+                    height: 100%;
+                    background: white;
+                    overflow: hidden;
+                    border-radius: 2px;
+                ">
+                    <!-- СЮДА МОЖНО ДОБАВИТЬ ЛЮБОЙ HTML-КОНТЕНТ -->
+                </div>
+            </foreignObject>
+        </svg>
     </div>
 </body>
 </html>
