@@ -46,7 +46,6 @@
             object-fit: contain;
         }
 
-        /* Белый экран поверх красной области */
         .screen-overlay {
             position: absolute;
             background: white;
@@ -56,28 +55,42 @@
             top: 0%;
             width: 0%;
             height: 0%;
-            transition: none;
         }
 
-        /* Canvas для анализа (скрыт) */
         #analysisCanvas {
             display: none;
         }
+
+        .debug-info {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: #0f0;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font: 12px monospace;
+            z-index: 100;
+            text-align: center;
+            border: 1px solid #333;
+            pointer-events: none;
+            white-space: pre;
+            max-width: 90%;
+        }
+        .debug-info span { color: #fff; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="phone-frame" id="phoneFrame">
-            <!-- Картинка с рамкой, где экран залит КРАСНЫМ -->
             <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
-
-            <!-- Белый экран поверх красной области -->
             <div class="screen-overlay" id="screenOverlay"></div>
         </div>
     </div>
 
-    <!-- Скрытый canvas для анализа пикселей -->
     <canvas id="analysisCanvas"></canvas>
+    <div class="debug-info" id="debugInfo">⏳ Анализ изображения...</div>
 
     <script>
         (function() {
@@ -85,8 +98,7 @@
             const overlay = document.getElementById('screenOverlay');
             const canvas = document.getElementById('analysisCanvas');
             const ctx = canvas.getContext('2d');
-
-            let isProcessing = false;
+            const debug = document.getElementById('debugInfo');
 
             function findRedArea(imageData, width, height) {
                 const data = imageData.data;
@@ -95,11 +107,9 @@
                 let maxX = 0,
                     maxY = 0;
                 let foundRed = false;
+                let redPixels = 0;
 
-                // Порог для определения красного цвета
-                const redThreshold = 100;
-                const greenBlueThreshold = 100;
-
+                // Проходим по всем пикселям
                 for (let y = 0; y < height; y++) {
                     for (let x = 0; x < width; x++) {
                         const i = (y * width + x) * 4;
@@ -108,9 +118,14 @@
                         const b = data[i + 2];
                         const a = data[i + 3];
 
-                        // Проверяем, является ли пиксель красным
-                        // Красный: r высокий, g и b низкие, и не прозрачный
-                        if (a > 128 && r > redThreshold && g < greenBlueThreshold && b < greenBlueThreshold) {
+                        // Пропускаем прозрачные пиксели
+                        if (a < 10) continue;
+
+                        // Проверяем на красный цвет (r высокий, g и b низкие)
+                        const isRed = (r > 150 && g < 100 && b < 100);
+
+                        if (isRed) {
+                            redPixels++;
                             if (x < minX) minX = x;
                             if (y < minY) minY = y;
                             if (x > maxX) maxX = x;
@@ -120,73 +135,72 @@
                     }
                 }
 
-                if (!foundRed) {
+                debug.textContent = `🔍 Найдено красных пикселей: ${redPixels}`;
+
+                if (!foundRed || redPixels < 50) {
                     return null;
                 }
 
-                // Добавляем небольшой отступ (1px от края красной области)
+                // Добавляем небольшой отступ
                 const padding = 2;
                 return {
                     left: Math.max(0, minX - padding),
                     top: Math.max(0, minY - padding),
                     width: Math.min(width, maxX - minX + padding * 2),
-                    height: Math.min(height, maxY - minY + padding * 2)
+                    height: Math.min(height, maxY - minY + padding * 2),
+                    pixels: redPixels
                 };
             }
 
             function processImage() {
-                if (isProcessing) return;
                 if (!img.complete || img.naturalWidth === 0) {
-                    setTimeout(processImage, 100);
+                    debug.textContent = '⏳ Загрузка изображения...';
+                    setTimeout(processImage, 200);
                     return;
                 }
 
-                isProcessing = true;
-
-                // Получаем реальные размеры картинки
                 const imgWidth = img.naturalWidth;
                 const imgHeight = img.naturalHeight;
 
-                // Устанавливаем размеры canvas под картинку
                 canvas.width = imgWidth;
                 canvas.height = imgHeight;
 
-                // Рисуем картинку на canvas
+                // Рисуем картинку
                 ctx.clearRect(0, 0, imgWidth, imgHeight);
                 ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
 
-                // Получаем данные пикселей
+                // Получаем данные
                 const imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
                 const redArea = findRedArea(imageData, imgWidth, imgHeight);
 
                 if (!redArea) {
-                    console.warn('⚠️ Красная область не найдена! Убедись, что экран залит ярко-красным цветом.');
-                    // Показываем ошибку на оверлее
-                    overlay.style.background = 'rgba(255,0,0,0.3)';
+                    debug.textContent = '❌ Красная область не найдена!\nУбедись, что экран залит ярко-КРАСНЫМ (#FF0000)';
+                    overlay.style.background = 'rgba(255,0,0,0.2)';
                     overlay.style.border = '2px dashed red';
                     overlay.style.left = '10%';
                     overlay.style.top = '10%';
                     overlay.style.width = '80%';
                     overlay.style.height = '80%';
-                    isProcessing = false;
                     return;
                 }
 
-                // Получаем размеры отображения картинки на экране
-                const imgDisplayRect = img.getBoundingClientRect();
+                // Координаты красной области в пикселях
+                const rect = img.getBoundingClientRect();
                 const containerRect = document.getElementById('phoneFrame').getBoundingClientRect();
 
-                // Вычисляем масштаб
-                const scaleX = imgDisplayRect.width / imgWidth;
-                const scaleY = imgDisplayRect.height / imgHeight;
+                const scaleX = rect.width / imgWidth;
+                const scaleY = rect.height / imgHeight;
 
-                // Вычисляем позицию красной области в процентах от контейнера
-                const leftPercent = ((redArea.left * scaleX + (imgDisplayRect.left - containerRect.left)) / containerRect.width) * 100;
-                const topPercent = ((redArea.top * scaleY + (imgDisplayRect.top - containerRect.top)) / containerRect.height) * 100;
-                const widthPercent = (redArea.width * scaleX / containerRect.width) * 100;
-                const heightPercent = (redArea.height * scaleY / containerRect.height) * 100;
+                const leftPx = redArea.left * scaleX + (rect.left - containerRect.left);
+                const topPx = redArea.top * scaleY + (rect.top - containerRect.top);
+                const widthPx = redArea.width * scaleX;
+                const heightPx = redArea.height * scaleY;
 
-                // Применяем размеры к оверлею
+                const leftPercent = (leftPx / containerRect.width) * 100;
+                const topPercent = (topPx / containerRect.height) * 100;
+                const widthPercent = (widthPx / containerRect.width) * 100;
+                const heightPercent = (heightPx / containerRect.height) * 100;
+
                 overlay.style.left = leftPercent + '%';
                 overlay.style.top = topPercent + '%';
                 overlay.style.width = widthPercent + '%';
@@ -194,17 +208,20 @@
                 overlay.style.background = 'white';
                 overlay.style.border = 'none';
 
-                console.log('✅ Красная область найдена!');
-                console.log(`📐 left: ${leftPercent.toFixed(2)}%`);
-                console.log(`📐 top: ${topPercent.toFixed(2)}%`);
-                console.log(`📐 width: ${widthPercent.toFixed(2)}%`);
-                console.log(`📐 height: ${heightPercent.toFixed(2)}%`);
-                console.log(`🖼️ Размеры в пикселях: ${redArea.width}×${redArea.height}px`);
+                debug.textContent = 
+                    `✅ Найдено! ${redArea.pixels} красных пикселей\n` +
+                    `📐 left: ${leftPercent.toFixed(2)}%  top: ${topPercent.toFixed(2)}%\n` +
+                    `📐 width: ${widthPercent.toFixed(2)}%  height: ${heightPercent.toFixed(2)}%\n` +
+                    `🖼️ ${redArea.width}×${redArea.height}px (в PNG)`;
 
-                isProcessing = false;
+                console.log('✅ Красная область найдена!');
+                console.log(`left: ${leftPercent.toFixed(2)}%`);
+                console.log(`top: ${topPercent.toFixed(2)}%`);
+                console.log(`width: ${widthPercent.toFixed(2)}%`);
+                console.log(`height: ${heightPercent.toFixed(2)}%`);
             }
 
-            // Ждём загрузки картинки
+            // Загрузка
             if (img.complete) {
                 setTimeout(processImage, 100);
             } else {
@@ -213,13 +230,15 @@
                 });
             }
 
-            // Обновляем при ресайзе
-            window.addEventListener('resize', function() {
-                setTimeout(processImage, 200);
+            img.addEventListener('error', function() {
+                debug.textContent = '❌ Ошибка загрузки df.png!\nПроверь путь к файлу.';
             });
 
-            // Повторная попытка через 2 секунды
-            setTimeout(processImage, 2000);
+            window.addEventListener('resize', function() {
+                setTimeout(processImage, 300);
+            });
+
+            setTimeout(processImage, 3000);
         })();
     </script>
 </body>
