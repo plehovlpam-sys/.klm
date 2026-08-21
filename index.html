@@ -102,7 +102,7 @@
             opacity: 1;
         }
 
-        /* ===== WP8 ИНТЕРФЕЙС ВНУТРИ БЕЛОГО ЭКРАНА ===== */
+        /* ===== WP8 ИНТЕРФЕЙС ВНУТРИ БОКСА ===== */
         .wp-content {
             position: absolute;
             top: 0;
@@ -113,12 +113,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: transparent;
-            pointer-events: none;
+            background: #000;
+            padding: 24px 20px 30px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
             opacity: 0;
             transition: opacity 0.5s ease;
+            pointer-events: none;
         }
 
         .wp-content.visible {
@@ -126,24 +128,29 @@
             pointer-events: auto;
         }
 
+        .wp-content::-webkit-scrollbar {
+            display: none;
+        }
+
         .wp-content .title {
             font-family: 'Segoe UI', sans-serif;
-            font-size: 52px;
+            font-size: 48px;
             font-weight: 300;
-            color: #000;
+            color: #fff;
             letter-spacing: -1px;
             text-transform: lowercase;
-            margin-bottom: 12px;
+            margin-top: 30px;
+            margin-bottom: 8px;
             line-height: 1;
         }
 
         .wp-content .image-wrap {
-            margin: 8px 0 16px 0;
+            margin: 8px 0 20px 0;
             line-height: 0;
         }
 
         .wp-content .image-wrap img {
-            width: 120px;
+            width: 100px;
             height: auto;
             display: block;
             border-radius: 0;
@@ -154,9 +161,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             width: 100%;
             max-width: 200px;
+            margin-top: 4px;
         }
 
         .wp-content .buttons a {
@@ -166,10 +174,10 @@
             font-size: 15px;
             font-weight: 400;
             text-transform: lowercase;
-            color: #000;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(0, 0, 0, 0.15);
-            padding: 8px 0;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 10px 0;
             text-align: center;
             text-decoration: none;
             letter-spacing: 0.3px;
@@ -181,7 +189,24 @@
         }
 
         .wp-content .buttons a:active {
-            background: rgba(200, 200, 200, 0.9);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .wp-content .spacer {
+            flex: 1;
+            min-height: 20px;
+        }
+
+        .wp-content .bottom-text {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.15);
+            text-align: center;
+            text-transform: lowercase;
+            letter-spacing: 0.5px;
+            margin-top: 20px;
+            padding-bottom: 10px;
+            line-height: 1.4;
         }
 
         /* ===== ПОВОРОТ И ДЕСКТОП ===== */
@@ -236,7 +261,7 @@
             .phone-frame img,
             #overlayCanvas,
             .wp-content {
-                display: block;
+                display: flex;
             }
         }
 
@@ -297,7 +322,7 @@
             <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
             <canvas id="overlayCanvas"></canvas>
 
-            <!-- WP8 ИНТЕРФЕЙС -->
+            <!-- WP8 ИНТЕРФЕЙС (ВНУТРИ БОКСА, ЧЁРНЫЙ ФОН, СКРОЛЛ) -->
             <div class="wp-content" id="wpContent">
                 <div class="title">heyyy</div>
                 <div class="image-wrap">
@@ -308,6 +333,8 @@
                     <a href="#" target="_blank">tg (dm)</a>
                     <a href="#" target="_blank">tg (channel)</a>
                 </div>
+                <div class="spacer"></div>
+                <div class="bottom-text">windows phone 8</div>
             </div>
         </div>
     </div>
@@ -427,22 +454,28 @@
                 const w = redArea.width * scaleX;
                 const h = redArea.height * scaleY;
 
+                // БЕЛЫЙ БОКС (фон для контента)
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(x, y, w, h);
 
                 canvas.classList.add('visible');
+
+                // ПОЗИЦИОНИРУЕМ WP КОНТЕНТ ПОВЕРХ БЕЛОГО БОКСА
+                wpContent.style.left = x + 'px';
+                wpContent.style.top = y + 'px';
+                wpContent.style.width = w + 'px';
+                wpContent.style.height = h + 'px';
 
                 lastRedArea = redArea;
                 lastImgWidth = imgWidth;
                 lastImgHeight = imgHeight;
                 isReady = true;
 
-                // Показываем WP интерфейс
                 if (!isWpVisible) {
                     isWpVisible = true;
                     setTimeout(function() {
                         wpContent.classList.add('visible');
-                    }, 100);
+                    }, 150);
                 }
             }
 
