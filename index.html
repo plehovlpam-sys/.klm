@@ -23,10 +23,9 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
 
-        /* Исправленный градиент — не растягивается */
         @media (orientation: portrait) and (max-width: 768px) {
             body {
-                background: radial-gradient(circle at center, #9600d6 0%, #000000 70%);
+                background: radial-gradient(circle at center, #2b003d 0%, #000000 70%);
                 background-attachment: fixed;
                 background-size: 100% 100%;
                 background-position: center;
@@ -101,6 +100,62 @@
             opacity: 1;
         }
 
+        /* ===== СТАТУС БАР (поверх канваса) ===== */
+        .status-bar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            max-width: 98vh;
+            max-height: 98vh;
+            z-index: 3;
+            pointer-events: none;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            object-fit: contain;
+        }
+
+        .status-bar-overlay.visible {
+            opacity: 1;
+        }
+
+        .status-bar-overlay .status-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .status-bar-overlay .status-btns {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: auto;
+            height: auto;
+            max-width: 30%;
+            max-height: 8%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .status-bar-overlay .status-time {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            padding-top: 0.5%;
+            pointer-events: none;
+        }
+
         .rotate-message {
             position: fixed;
             top: 0;
@@ -139,7 +194,8 @@
                 display: flex;
             }
             .phone-frame img,
-            #overlayCanvas {
+            #overlayCanvas,
+            .status-bar-overlay {
                 display: none !important;
             }
         }
@@ -149,7 +205,8 @@
                 display: none !important;
             }
             .phone-frame img,
-            #overlayCanvas {
+            #overlayCanvas,
+            .status-bar-overlay {
                 display: block;
             }
         }
@@ -189,7 +246,8 @@
             }
             .phone-frame img,
             #overlayCanvas,
-            .rotate-message {
+            .rotate-message,
+            .status-bar-overlay {
                 display: none !important;
             }
         }
@@ -209,6 +267,14 @@
         <div class="phone-frame" id="phoneFrame">
             <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
             <canvas id="overlayCanvas"></canvas>
+
+            <!-- СТАТУС БАР ПОВЕРХ КАНВАСА -->
+            <div class="status-bar-overlay" id="statusBarOverlay">
+                <div class="status-content">
+                    <img class="status-btns" src="statusbarbtns.png" alt="" />
+                    <span class="status-time" id="statusTime">00:00</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -217,6 +283,8 @@
             const img = document.getElementById('frameImage');
             const canvas = document.getElementById('overlayCanvas');
             const ctx = canvas.getContext('2d');
+            const statusBar = document.getElementById('statusBarOverlay');
+            const statusTime = document.getElementById('statusTime');
 
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
@@ -225,6 +293,16 @@
             let lastImgWidth = 0;
             let lastImgHeight = 0;
             let isReady = false;
+
+            // === ВРЕМЯ ===
+            function updateTime() {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                statusTime.textContent = h + ':' + m;
+            }
+            updateTime();
+            setInterval(updateTime, 10000);
 
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
@@ -312,7 +390,7 @@
 
             function drawOverlay(redArea, imgWidth, imgHeight) {
                 const display = getImageDisplayRect();
-                
+
                 canvas.width = display.containerWidth;
                 canvas.height = display.containerHeight;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -329,6 +407,7 @@
                 ctx.fillRect(x, y, w, h);
 
                 canvas.classList.add('visible');
+                statusBar.classList.add('visible');
 
                 lastRedArea = redArea;
                 lastImgWidth = imgWidth;
@@ -355,6 +434,7 @@
 
                 if (!redArea) {
                     canvas.classList.remove('visible');
+                    statusBar.classList.remove('visible');
                     img.classList.remove('visible');
                     setTimeout(processImage, 500);
                     return;
@@ -381,6 +461,7 @@
 
             img.addEventListener('error', function() {
                 canvas.classList.remove('visible');
+                statusBar.classList.remove('visible');
                 img.classList.remove('visible');
             });
 
