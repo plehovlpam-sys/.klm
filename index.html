@@ -1,7 +1,7 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Phone Frame</title>
     <style>
@@ -10,16 +10,25 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        html,
         body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background: #000;
+        }
+
+        .container {
+            position: relative;
             width: 100vw;
             height: 100vh;
-            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .container {
+
+        .phone-frame {
             position: relative;
             width: 100%;
             height: 100%;
@@ -27,35 +36,161 @@
             align-items: center;
             justify-content: center;
         }
-        .phone-frame {
-            width: auto;
-            height: auto;
-            max-width: 100%;
-            max-height: 100%;
+
+        .phone-frame svg {
+            width: 100%;
+            height: 100%;
+            max-width: 98vh;
+            max-height: 98vh;
             display: block;
+        }
+
+        /* Экран поверх SVG */
+        .screen-overlay {
+            position: absolute;
+            background: white;
+            pointer-events: none;
+            border-radius: 2px;
+            /* Эти значения будут автоматически пересчитаны через JS */
+            left: 0%;
+            top: 0%;
+            width: 0%;
+            height: 0%;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <svg class="phone-frame" viewBox="0 0 400 800" xmlns="http://www.w3.org/2000/svg">
-            <!-- Сначала вставляем твою рамку (main.svg) -->
-            <image href="main.svg" x="0" y="0" width="100%" height="100%" />
-            
-            <!-- Затем вставляем контент (белый фон) внутрь экрана -->
-            <!-- Нужно подогнать координаты под твою рамку! -->
-            <foreignObject x="25" y="60" width="350" height="700">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="
-                    width: 100%;
-                    height: 100%;
-                    background: white;
-                    overflow: hidden;
-                    border-radius: 2px;
-                ">
-                    <!-- СЮДА МОЖНО ДОБАВИТЬ ЛЮБОЙ HTML-КОНТЕНТ -->
-                </div>
-            </foreignObject>
-        </svg>
+        <div class="phone-frame" id="phoneFrame">
+            <!-- Рамка из SVG -->
+            <object id="frameSvg" data="main.svg" type="image/svg+xml"></object>
+
+            <!-- Белый экран поверх пустого места в рамке -->
+            <div class="screen-overlay" id="screenOverlay"></div>
+        </div>
     </div>
+
+    <script>
+        (function() {
+            const frame = document.getElementById('phoneFrame');
+            const overlay = document.getElementById('screenOverlay');
+            const svgObject = document.getElementById('frameSvg');
+
+            function getScreenBounds() {
+                // Получаем SVG документ
+                const svgDoc = svgObject.contentDocument;
+                if (!svgDoc) return null;
+
+                const svgElement = svgDoc.querySelector('svg');
+                if (!svgElement) return null;
+
+                // Получаем bounding box всех элементов в SVG
+                const allElements = svgElement.querySelectorAll('*');
+                let minX = Infinity,
+                    minY = Infinity;
+                let maxX = -Infinity,
+                    maxY = -Infinity;
+
+                // Собираем все видимые элементы (исключая группы-контейнеры без геометрии)
+                const visibleElements = [];
+                allElements.forEach(el => {
+                    // Пропускаем элементы без геометрии (defs, clipPath и т.д.)
+                    const tag = el.tagName.toLowerCase();
+                    if (['defs', 'clipPath', 'mask', 'linearGradient', 'radialGradient', 'pattern', 'filter', 'title', 'desc'].includes(tag)) {
+                        return;
+                    }
+                    // Проверяем есть ли у элемента геометрия
+                    const bbox = el.getBBox();
+                    if (bbox.width > 0 && bbox.height > 0) {
+                        visibleElements.push(el);
+                    }
+                });
+
+                if (visibleElements.length === 0) {
+                    // Если ничего не найдено — используем всю область SVG
+                    const svgRect = svgElement.getBoundingClientRect();
+                    const frameRect = frame.getBoundingClientRect();
+                    return {
+                        left: 0,
+                        top: 0,
+                        width: 100,
+                        height: 100
+                    };
+                }
+
+                // Находим минимальные и максимальные координаты
+                visibleElements.forEach(el => {
+                    const bbox = el.getBBox();
+                    // Учитываем transform
+                    const rect = el.getBoundingClientRect();
+                    const svgRect = svgElement.getBoundingClientRect();
+
+                    // Получаем координаты относительно SVG
+                    const x1 = (rect.left - svgRect.left) / svgRect.width * 100;
+                    const y1 = (rect.top - svgRect.top) / svgRect.height * 100;
+                    const x2 = (rect.right - svgRect.left) / svgRect.width * 100;
+                    const y2 = (rect.bottom - svgRect.top) / svgRect.height * 100;
+
+                    if (x1 < minX) minX = x1;
+                    if (y1 < minY) minY = y1;
+                    if (x2 > maxX) maxX = x2;
+                    if (y2 > maxY) maxY = y2;
+                });
+
+                // Добавляем небольшой отступ (1%)
+                const padding = 1;
+                minX = Math.max(0, minX - padding);
+                minY = Math.max(0, minY - padding);
+                maxX = Math.min(100, maxX + padding);
+                maxY = Math.min(100, maxY + padding);
+
+                return {
+                    left: minX,
+                    top: minY,
+                    width: maxX - minX,
+                    height: maxY - minY
+                };
+            }
+
+            function updateScreen() {
+                const bounds = getScreenBounds();
+                if (!bounds) {
+                    // Если SVG не загружен — пробуем ещё раз через 100ms
+                    setTimeout(updateScreen, 100);
+                    return;
+                }
+
+                overlay.style.left = bounds.left + '%';
+                overlay.style.top = bounds.top + '%';
+                overlay.style.width = bounds.width + '%';
+                overlay.style.height = bounds.height + '%';
+
+                console.log('📱 Размеры экрана (в % от SVG):');
+                console.log(`left: ${bounds.left.toFixed(2)}%`);
+                console.log(`top: ${bounds.top.toFixed(2)}%`);
+                console.log(`width: ${bounds.width.toFixed(2)}%`);
+                console.log(`height: ${bounds.height.toFixed(2)}%`);
+            }
+
+            // Ждём загрузки SVG
+            svgObject.addEventListener('load', function() {
+                // Небольшая задержка для полной загрузки DOM
+                setTimeout(updateScreen, 50);
+            });
+
+            // Обновляем при ресайзе
+            window.addEventListener('resize', function() {
+                setTimeout(updateScreen, 100);
+            });
+
+            // Если SVG уже загружен
+            if (svgObject.contentDocument) {
+                setTimeout(updateScreen, 50);
+            }
+
+            // Дополнительная проверка через 2 секунды
+            setTimeout(updateScreen, 2000);
+        })();
+    </script>
 </body>
 </html>
