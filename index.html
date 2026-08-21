@@ -16,12 +16,25 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #000;
         }
 
         body {
-            background: radial-gradient(ellipse at 50% 100%, #7200a3 0%, #000000 70%);
-            background-attachment: fixed;
+            background: #000;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        /* Градиентный фон только в портретном режиме */
+        @media (orientation: portrait) {
+            body {
+                background: radial-gradient(ellipse at 50% 100%, #2b003d 0%, #000000 70%);
+                background-attachment: fixed;
+            }
+        }
+
+        @media (orientation: landscape) {
+            body {
+                background: #000;
+            }
         }
 
         .container {
@@ -77,6 +90,7 @@
             opacity: 1;
         }
 
+        /* Сообщение о повороте */
         .rotate-message {
             position: fixed;
             top: 0;
@@ -86,7 +100,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            background: radial-gradient(ellipse at 50% 100%, #7200a3 0%, #000000 70%);
+            background: #000;
             z-index: 999;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 14px;
@@ -123,6 +137,7 @@
     </style>
 </head>
 <body>
+    <!-- Сообщение для горизонтального режима -->
     <div class="rotate-message" id="rotateMessage">
         ПЕРЕВЕРНИ ТЕЛЕФОН<br>В ПОРТРЕТНЫЙ РЕЖИМ
     </div>
