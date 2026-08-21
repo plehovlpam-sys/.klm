@@ -1,1 +1,214 @@
-s
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Phone Frame Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: white;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+        }
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .phone-frame-img {
+            position: absolute;
+            width: auto;
+            height: auto;
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .screen-overlay {
+            position: absolute;
+            border: 2px dashed rgba(255, 0, 0, 0.5);
+            background: rgba(255, 0, 0, 0.05);
+            cursor: move;
+            resize: both;
+            overflow: auto;
+            min-width: 50px;
+            min-height: 50px;
+        }
+        .screen-overlay::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 0, 0, 0.3);
+            border: 2px solid red;
+            border-radius: 2px;
+            cursor: nw-resize;
+        }
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #0f0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: monospace;
+            z-index: 100;
+            text-align: center;
+            line-height: 1.6;
+            border: 1px solid #333;
+            pointer-events: none;
+            user-select: all;
+            white-space: pre;
+        }
+        .info-panel span {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <img src="df.png" alt="Phone Frame" class="phone-frame-img" id="phoneFrame" />
+        <div class="screen-overlay" id="screenOverlay"></div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+        <span>📐 ПОЛОЖЕНИЕ И РАЗМЕРЫ ЭКРАНА</span>
+        <span id="coords">left: 0px | top: 0px | width: 0px | height: 0px</span>
+        <span>⬅️ Перетащи красный прямоугольник мышкой</span>
+        <span>↕️ Растягивай за нижний правый угол</span>
+    </div>
+
+    <script>
+        (function() {
+            const overlay = document.getElementById('screenOverlay');
+            const container = document.getElementById('container');
+            const coordsDisplay = document.getElementById('coords');
+
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+            let isResizing = false;
+
+            // Начальные значения (можно менять)
+            overlay.style.left = '100px';
+            overlay.style.top = '150px';
+            overlay.style.width = '200px';
+            overlay.style.height = '300px';
+
+            function updateCoords() {
+                const rect = overlay.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                
+                const left = Math.round(rect.left - containerRect.left);
+                const top = Math.round(rect.top - containerRect.top);
+                const width = Math.round(rect.width);
+                const height = Math.round(rect.height);
+                
+                coordsDisplay.textContent = `left: ${left}px | top: ${top}px | width: ${width}px | height: ${height}px`;
+            }
+
+            // Drag
+            overlay.addEventListener('mousedown', function(e) {
+                if (e.target === overlay) {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startLeft = parseInt(overlay.style.left) || 0;
+                    startTop = parseInt(overlay.style.top) || 0;
+                    overlay.style.cursor = 'grabbing';
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    overlay.style.left = (startLeft + dx) + 'px';
+                    overlay.style.top = (startTop + dy) + 'px';
+                    updateCoords();
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    overlay.style.cursor = 'move';
+                }
+            });
+
+            // Resize через右下角
+            const resizeHandle = document.createElement('div');
+            resizeHandle.style.cssText = `
+                position: absolute;
+                bottom: -8px;
+                right: -8px;
+                width: 20px;
+                height: 20px;
+                background: rgba(255, 0, 0, 0.4);
+                border: 2px solid red;
+                border-radius: 2px;
+                cursor: nw-resize;
+                z-index: 10;
+            `;
+            overlay.appendChild(resizeHandle);
+
+            let resizeStartX, resizeStartY, resizeStartWidth, resizeStartHeight;
+
+            resizeHandle.addEventListener('mousedown', function(e) {
+                isResizing = true;
+                resizeStartX = e.clientX;
+                resizeStartY = e.clientY;
+                resizeStartWidth = parseInt(overlay.style.width) || 200;
+                resizeStartHeight = parseInt(overlay.style.height) || 300;
+                e.stopPropagation();
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isResizing) {
+                    const dx = e.clientX - resizeStartX;
+                    const dy = e.clientY - resizeStartY;
+                    overlay.style.width = Math.max(50, resizeStartWidth + dx) + 'px';
+                    overlay.style.height = Math.max(50, resizeStartHeight + dy) + 'px';
+                    updateCoords();
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isResizing) {
+                    isResizing = false;
+                }
+            });
+
+            // Обновление при ресайзе окна
+            window.addEventListener('resize', function() {
+                updateCoords();
+            });
+
+            // Первоначальное обновление
+            setTimeout(updateCoords, 100);
+        })();
+    </script>
+</body>
+</html>
