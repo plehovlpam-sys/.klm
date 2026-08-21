@@ -71,9 +71,59 @@
         #overlayCanvas.visible {
             opacity: 1;
         }
+
+        /* Сообщение о повороте */
+        .rotate-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            z-index: 999;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: #666;
+            letter-spacing: 0.5px;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .rotate-message.show {
+            display: flex;
+        }
+
+        @media (orientation: landscape) {
+            .rotate-message {
+                display: flex;
+            }
+            .phone-frame img,
+            #overlayCanvas {
+                display: none !important;
+            }
+        }
+
+        @media (orientation: portrait) {
+            .rotate-message {
+                display: none !important;
+            }
+            .phone-frame img,
+            #overlayCanvas {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Сообщение для горизонтального режима -->
+    <div class="rotate-message" id="rotateMessage">
+        ПЕРЕВЕРНИ ТЕЛЕФОН<br>В ПОРТРЕТНЫЙ РЕЖИМ
+    </div>
+
     <div class="container">
         <div class="phone-frame" id="phoneFrame">
             <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
@@ -229,7 +279,6 @@
                     return;
                 }
 
-                // Показываем рамку и канвас одновременно
                 img.classList.add('visible');
                 drawOverlay(redArea, imgWidth, imgHeight);
             }
