@@ -24,14 +24,21 @@
         }
 
         /* Градиентный фон только в портретном режиме */
-        @media (orientation: portrait) {
+        @media (orientation: portrait) and (max-width: 768px) {
             body {
-                background: radial-gradient(ellipse at 50% 100%, #2b003d 0%, #000000 70%);
+                background: radial-gradient(ellipse at center, #2b003d 0%, #000000 70%);
                 background-attachment: fixed;
             }
         }
 
         @media (orientation: landscape) {
+            body {
+                background: #000;
+            }
+        }
+
+        /* Десктопный режим (ширина > 768px) */
+        @media (min-width: 769px) {
             body {
                 background: #000;
             }
@@ -109,10 +116,19 @@
             letter-spacing: 0.5px;
             text-align: center;
             padding: 30px;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .rotate-message.show {
             display: flex;
+        }
+
+        .rotate-message img {
+            width: 60px;
+            height: auto;
+            display: block;
+            opacity: 0.5;
         }
 
         @media (orientation: landscape) {
@@ -134,9 +150,56 @@
                 display: block;
             }
         }
+
+        /* Десктопное сообщение (ширина > 768px) */
+        .desktop-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            z-index: 1000;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: #666;
+            letter-spacing: 0.5px;
+            text-align: center;
+            padding: 30px;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .desktop-message img {
+            width: 60px;
+            height: auto;
+            display: block;
+            opacity: 0.5;
+        }
+
+        @media (min-width: 769px) {
+            .desktop-message {
+                display: flex;
+            }
+            .phone-frame img,
+            #overlayCanvas,
+            .rotate-message {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Десктопное сообщение -->
+    <div class="desktop-message" id="desktopMessage">
+        ОТКРОЙ НА ТЕЛЕФОНЕ
+        <img src="eyes.png" alt="" />
+    </div>
+
     <!-- Сообщение для горизонтального режима -->
     <div class="rotate-message" id="rotateMessage">
         ПЕРЕВЕРНИ ТЕЛЕФОН<br>В ПОРТРЕТНЫЙ РЕЖИМ
