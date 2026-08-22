@@ -76,13 +76,7 @@
             object-fit: contain;
             position: relative;
             z-index: 1;
-            opacity: 0;
             filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.8));
-            transition: opacity 0.4s ease;
-        }
-
-        .phone-frame img.visible {
-            opacity: 1;
         }
 
         #overlayCanvas {
@@ -95,12 +89,6 @@
             pointer-events: none;
             display: block;
             object-fit: contain;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        #overlayCanvas.visible {
-            opacity: 1;
         }
 
         .wp-content {
@@ -116,13 +104,10 @@
             background: #000;
             padding: 0;
             overflow: hidden;
-            opacity: 0;
-            transition: opacity 0.4s ease;
             pointer-events: none;
         }
 
         .wp-content.visible {
-            opacity: 1;
             pointer-events: auto;
         }
 
@@ -268,8 +253,6 @@
             border-radius: 0;
             box-shadow: none;
             background: transparent;
-            opacity: 1;
-            visibility: visible;
             margin: 0;
         }
 
@@ -309,6 +292,11 @@
             border-color: rgba(255, 255, 255, 0.8);
         }
 
+        .wp-content .buttons .share-btn {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
         .wp-content .image-full {
             width: 100%;
             padding: 4px 0;
@@ -322,8 +310,6 @@
             height: auto;
             display: block;
             margin: 0;
-            opacity: 1;
-            visibility: visible;
         }
 
         .wp-content .mini-player {
@@ -415,6 +401,106 @@
         .wp-content .spacer {
             flex: 1;
             min-height: 6px;
+        }
+
+        .share-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .share-modal.open {
+            display: flex;
+        }
+
+        .share-modal .modal-box {
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px 28px 24px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .share-modal .modal-box .modal-title {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .share-modal .modal-box .modal-url {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 18px;
+            font-weight: 300;
+            color: #fff;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            word-break: break-all;
+        }
+
+        .share-modal .modal-box .modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .share-modal .modal-box .modal-actions button {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: #fff;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 0;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+            border-radius: 0;
+            text-transform: lowercase;
+            letter-spacing: 0.3px;
+            width: 100%;
+        }
+
+        .share-modal .modal-box .modal-actions button:active {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .share-modal .modal-box .modal-actions .copy-btn {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .share-modal .modal-box .modal-actions .close-btn {
+            border-color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .share-modal .modal-box .modal-actions .close-btn:active {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .share-modal .modal-box .toast {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 10px;
+            min-height: 18px;
+            transition: color 0.3s ease;
+        }
+
+        .share-modal .modal-box .toast.show {
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .rotate-message {
@@ -524,6 +610,28 @@
         ПЕРЕВЕРНИ ТЕЛЕФОН<br>В ПОРТРЕТНЫЙ РЕЖИМ
     </div>
 
+    <div class="share-modal" id="shareModal">
+        <div class="modal-box">
+            <div class="modal-title">поделиться</div>
+            <div class="modal-url">lilya4ever.vercel.app</div>
+            <div class="modal-actions">
+                <button class="copy-btn" id="copyBtn">
+                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:6px;">content_copy</span>
+                    скопировать ссылку
+                </button>
+                <button class="share-btn" id="shareBtn">
+                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:6px;">share</span>
+                    поделиться
+                </button>
+                <button class="close-btn" id="closeModalBtn">
+                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:6px;">close</span>
+                    закрыть
+                </button>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="phone-frame" id="phoneFrame">
             <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
@@ -566,10 +674,22 @@
                     </div>
 
                     <div class="buttons">
-                        <a href="https://www.instagram.com/to_oporr" target="_blank">ig</a>
-                        <a href="https://t.me/+u_luSfeN_ItiMjdi" target="_blank">tg (private)</a>
-                        <a href="https://t.me/lxxkxxjjxjxsl" target="_blank">tg (channel)</a>
-                        <a href="https://t.me/+AG4wg_BJI-hkMmQy" target="_blank">tg (life)</a>
+                        <a href="https://www.instagram.com/to_oporr" target="_blank">
+                            <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px;">photo_camera</span>
+                            ig
+                        </a>
+                        <a href="https://t.me/+u_luSfeN_ItiMjdi" target="_blank">
+                            <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px;">chat</span>
+                            tg (life)
+                        </a>
+                        <a href="https://t.me/lxxkxxjjxjxsl" target="_blank">
+                            <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px;">rss_feed</span>
+                            tg (channel)
+                        </a>
+                        <button class="share-btn" id="openShareModal">
+                            <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:8px;">share</span>
+                            share my webpage
+                        </button>
                     </div>
 
                     <div class="image-full">
@@ -583,18 +703,24 @@
                     </div>
 
                     <div class="mini-player">
-                        <audio id="player" src="e.mp3"></audio>
+                        <audio id="player" src="ex.mp3"></audio>
                         <div class="cover">
                             <img src="q1.png" alt="" />
                         </div>
                         <div class="info">
-                            <div class="track">friends</div>
-                            <div class="artist">chase atlantic</div>
+                            <div class="track">soundtrack for your backseat</div>
+                            <div class="artist">sundiver ca</div>
                         </div>
                         <div class="controls">
-                            <button class="prev-btn" id="prevBtn">skip_previous</button>
-                            <button class="play-btn" id="playBtn">play_circle</button>
-                            <button class="next-btn" id="nextBtn">skip_next</button>
+                            <button class="prev-btn" id="prevBtn">
+                                <span class="material-symbols-outlined" style="font-size:24px;">skip_previous</span>
+                            </button>
+                            <button class="play-btn" id="playBtn">
+                                <span class="material-symbols-outlined" style="font-size:28px;">play_circle</span>
+                            </button>
+                            <button class="next-btn" id="nextBtn">
+                                <span class="material-symbols-outlined" style="font-size:24px;">skip_next</span>
+                            </button>
                         </div>
                     </div>
 
@@ -634,7 +760,14 @@
             const innerImage = document.getElementById('innerImage');
             const clockTime = document.getElementById('clockTime');
             const scrollArea = document.getElementById('scrollArea');
-            const phoneFrame = document.getElementById('phoneFrame');
+
+            const shareModal = document.getElementById('shareModal');
+            const openShareBtn = document.getElementById('openShareModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const toast = document.getElementById('toast');
+            const url = 'lilya4ever.vercel.app';
 
             function updateClock() {
                 const now = new Date();
@@ -655,17 +788,17 @@
                 playBtn.addEventListener('click', function() {
                     if (audio.paused) {
                         audio.play().catch(function(e) {});
-                        this.textContent = 'pause_circle';
+                        this.querySelector('span').textContent = 'pause_circle';
                         isPlaying = true;
                     } else {
                         audio.pause();
-                        this.textContent = 'play_circle';
+                        this.querySelector('span').textContent = 'play_circle';
                         isPlaying = false;
                     }
                 });
 
                 audio.addEventListener('ended', function() {
-                    playBtn.textContent = 'play_circle';
+                    playBtn.querySelector('span').textContent = 'play_circle';
                     isPlaying = false;
                 });
             }
@@ -692,10 +825,91 @@
                     this.style.minHeight = '60px';
                 });
                 if (el.complete && el.naturalWidth > 0) {
-                    el.style.opacity = '1';
-                    el.style.visibility = 'visible';
+                    this.style.opacity = '1';
+                    this.style.visibility = 'visible';
                 }
             });
+
+            function openModal() {
+                shareModal.classList.add('open');
+                toast.classList.remove('show');
+                toast.textContent = '';
+            }
+
+            function closeModal() {
+                shareModal.classList.remove('open');
+            }
+
+            if (openShareBtn) {
+                openShareBtn.addEventListener('click', openModal);
+            }
+
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', closeModal);
+            }
+
+            shareModal.addEventListener('click', function(e) {
+                if (e.target === shareModal) {
+                    closeModal();
+                }
+            });
+
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function() {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(url).then(function() {
+                            toast.textContent = 'скопировано в буфер обмена';
+                            toast.classList.add('show');
+                        }).catch(function() {
+                            fallbackCopy(url);
+                        });
+                    } else {
+                        fallbackCopy(url);
+                    }
+                });
+            }
+
+            if (shareBtn) {
+                shareBtn.addEventListener('click', function() {
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'лиля 4ever',
+                            text: 'лиля 4ever',
+                            url: 'https://' + url
+                        }).catch(function() {});
+                    } else {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(url).then(function() {
+                                toast.textContent = 'ссылка скопирована';
+                                toast.classList.add('show');
+                            }).catch(function() {
+                                fallbackCopy(url);
+                            });
+                        } else {
+                            fallbackCopy(url);
+                        }
+                    }
+                });
+            }
+
+            function fallbackCopy(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    toast.textContent = 'скопировано в буфер обмена';
+                    toast.classList.add('show');
+                } catch (e) {
+                    toast.textContent = 'не удалось скопировать';
+                    toast.classList.add('show');
+                }
+                document.body.removeChild(textarea);
+            }
 
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
@@ -704,7 +918,6 @@
             let lastImgWidth = 0;
             let lastImgHeight = 0;
             let isReady = false;
-            let isWpVisible = false;
 
             innerImage.addEventListener('load', function() {
                 this.style.opacity = '1';
@@ -721,12 +934,6 @@
                 innerImage.style.opacity = '1';
                 innerImage.style.visibility = 'visible';
             }
-
-            phoneFrame.addEventListener('click', function() {
-                if (scrollArea) {
-                    scrollArea.scrollTop = 0;
-                }
-            });
 
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
@@ -830,8 +1037,6 @@
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(x, y, w, h);
 
-                canvas.classList.add('visible');
-
                 wpContent.style.left = x + 'px';
                 wpContent.style.top = y + 'px';
                 wpContent.style.width = w + 'px';
@@ -842,12 +1047,7 @@
                 lastImgHeight = imgHeight;
                 isReady = true;
 
-                if (!isWpVisible) {
-                    isWpVisible = true;
-                    setTimeout(function() {
-                        wpContent.classList.add('visible');
-                    }, 400);
-                }
+                wpContent.classList.add('visible');
             }
 
             function processImage() {
@@ -868,9 +1068,7 @@
                 const redArea = findRedArea(imageData, imgWidth, imgHeight);
 
                 if (!redArea) {
-                    canvas.classList.remove('visible');
                     wpContent.classList.remove('visible');
-                    isWpVisible = false;
                     img.classList.remove('visible');
                     setTimeout(processImage, 500);
                     return;
@@ -896,9 +1094,7 @@
             }
 
             img.addEventListener('error', function() {
-                canvas.classList.remove('visible');
                 wpContent.classList.remove('visible');
-                isWpVisible = false;
                 img.classList.remove('visible');
             });
 
