@@ -101,7 +101,6 @@
             opacity: 1;
         }
 
-        /* ===== WP8 ИНТЕРФЕЙС ВНУТРИ БОКСА ===== */
         .wp-content {
             position: absolute;
             top: 0;
@@ -143,6 +142,7 @@
             line-height: 1;
             text-align: left;
             width: 100%;
+            flex-shrink: 0;
         }
 
         .wp-content .image-wrap {
@@ -150,14 +150,22 @@
             padding: 4px 0 12px 0;
             line-height: 0;
             flex-shrink: 0;
+            background: transparent;
+            min-height: 50px;
         }
 
         .wp-content .image-wrap img {
             width: 100%;
+            max-width: 100%;
             height: auto;
+            max-height: 300px;
+            object-fit: contain;
             display: block;
             border-radius: 0;
             box-shadow: none;
+            background: transparent;
+            opacity: 1;
+            visibility: visible;
         }
 
         .wp-content .buttons {
@@ -216,7 +224,6 @@
             width: 100%;
         }
 
-        /* ===== ПОВОРОТ И ДЕСКТОП ===== */
         .rotate-message {
             position: fixed;
             top: 0;
@@ -329,11 +336,10 @@
             <img id="frameImage" src="df.png" alt="Phone Frame" crossorigin="anonymous" />
             <canvas id="overlayCanvas"></canvas>
 
-            <!-- WP8 ИНТЕРФЕЙС -->
             <div class="wp-content" id="wpContent">
                 <div class="title">heyyy</div>
                 <div class="image-wrap">
-                    <img src="a.jpg" alt="" />
+                    <img src="a.jpg" alt="" id="innerImage" />
                 </div>
                 <div class="buttons">
                     <a href="#" target="_blank">ig</a>
@@ -352,6 +358,7 @@
             const canvas = document.getElementById('overlayCanvas');
             const ctx = canvas.getContext('2d');
             const wpContent = document.getElementById('wpContent');
+            const innerImage = document.getElementById('innerImage');
 
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
@@ -361,6 +368,20 @@
             let lastImgHeight = 0;
             let isReady = false;
             let isWpVisible = false;
+
+            // Принудительно показываем картинку после загрузки
+            innerImage.addEventListener('load', function() {
+                console.log('✅ Картинка a.jpg загружена!');
+                this.style.opacity = '1';
+                this.style.visibility = 'visible';
+            });
+
+            innerImage.addEventListener('error', function() {
+                console.log('❌ Ошибка загрузки a.jpg');
+                this.style.background = '#222';
+                this.style.minHeight = '100px';
+                this.alt = 'a.jpg не найдена';
+            });
 
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
@@ -461,13 +482,11 @@
                 const w = redArea.width * scaleX;
                 const h = redArea.height * scaleY;
 
-                // БЕЛЫЙ БОКС
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(x, y, w, h);
 
                 canvas.classList.add('visible');
 
-                // ПОЗИЦИОНИРУЕМ WP КОНТЕНТ ПОВЕРХ БЕЛОГО БОКСА
                 wpContent.style.left = x + 'px';
                 wpContent.style.top = y + 'px';
                 wpContent.style.width = w + 'px';
