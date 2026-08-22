@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Phone Frame</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0,1" />
     <style>
         * {
             margin: 0;
@@ -124,7 +125,6 @@
             pointer-events: auto;
         }
 
-        /* ===== СТАТУС БАР ===== */
         .wp-content .statusbar {
             position: sticky;
             top: 0;
@@ -208,7 +208,6 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* ===== СКРОЛЛИРУЕМЫЙ КОНТЕНТ ===== */
         .wp-content .scroll-area {
             flex: 1;
             width: 100%;
@@ -232,7 +231,7 @@
             margin-top: 2px;
             margin-bottom: 6px;
             line-height: 1;
-            text-align: center;
+            text-align: left;
             width: 100%;
         }
 
@@ -242,7 +241,7 @@
             line-height: 0;
             background: transparent;
             min-height: 40px;
-            text-align: center;
+            text-align: left;
         }
 
         .wp-content .image-wrap img {
@@ -257,7 +256,7 @@
             background: transparent;
             opacity: 1;
             visibility: visible;
-            margin: 0 auto;
+            margin: 0;
         }
 
         .wp-content .buttons {
@@ -300,7 +299,7 @@
             width: 100%;
             padding: 4px 0;
             line-height: 0;
-            text-align: center;
+            text-align: left;
         }
 
         .wp-content .image-full img {
@@ -308,14 +307,14 @@
             max-width: 100%;
             height: auto;
             display: block;
-            margin: 0 auto;
+            margin: 0;
+            opacity: 1;
+            visibility: visible;
         }
 
-        /* ===== МИНИ ПЛЕЕР ===== */
         .wp-content .mini-player {
             width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
             padding: 10px 12px;
             margin: 6px 0 10px 0;
             display: flex;
@@ -359,7 +358,7 @@
         .wp-content .mini-player .controls {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             flex-shrink: 0;
         }
 
@@ -367,11 +366,13 @@
             background: transparent;
             border: none;
             color: rgba(255, 255, 255, 0.6);
-            font-size: 18px;
             cursor: pointer;
-            padding: 4px 6px;
+            padding: 4px;
             transition: color 0.15s ease;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Material Symbols Outlined', 'Segoe UI', sans-serif;
+            font-size: 24px;
+            font-weight: 400;
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
         .wp-content .mini-player .controls button:active {
@@ -379,21 +380,22 @@
         }
 
         .wp-content .mini-player .controls .play-btn {
-            font-size: 22px;
+            font-size: 28px;
             color: rgba(255, 255, 255, 0.8);
         }
 
         .wp-content .bottom-text {
             font-family: 'Segoe UI', sans-serif;
             font-size: 13px;
-            font-weight: 300;
+            font-weight: 400;
             color: rgba(255, 255, 255, 0.5);
             text-align: left;
             line-height: 1.5;
             margin-top: 8px;
             padding: 8px 0;
             width: 100%;
-            font-style: italic;
+            letter-spacing: 0;
+            font-style: normal;
         }
 
         .wp-content .spacer {
@@ -514,7 +516,6 @@
             <canvas id="overlayCanvas"></canvas>
 
             <div class="wp-content" id="wpContent">
-                <!-- СТАТУС БАР -->
                 <div class="statusbar">
                     <div class="left">
                         <span class="signal">
@@ -542,7 +543,6 @@
                     </div>
                 </div>
 
-                <!-- СКРОЛЛИРУЕМАЯ ОБЛАСТЬ -->
                 <div class="scroll-area">
                     <div class="title">heyyy</div>
 
@@ -566,7 +566,6 @@
                         <img src="d.png" alt="" />
                     </div>
 
-                    <!-- МИНИ ПЛЕЕР -->
                     <div class="mini-player">
                         <div class="cover">
                             <img src="q1.png" alt="" />
@@ -576,9 +575,9 @@
                             <div class="artist">Crystal Castles</div>
                         </div>
                         <div class="controls">
-                            <button class="prev-btn">⏮</button>
-                            <button class="play-btn">▶</button>
-                            <button class="next-btn">⏭</button>
+                            <button class="prev-btn">skip_previous</button>
+                            <button class="play-btn">play_circle</button>
+                            <button class="next-btn">skip_next</button>
                         </div>
                     </div>
 
@@ -627,15 +626,32 @@
             updateClock();
             setInterval(updateClock, 10000);
 
-            // Простой плеер
+            // Плеер
             let isPlaying = false;
             const playBtn = document.querySelector('.play-btn');
             if (playBtn) {
                 playBtn.addEventListener('click', function() {
                     isPlaying = !isPlaying;
-                    this.textContent = isPlaying ? '⏸' : '▶';
+                    this.textContent = isPlaying ? 'pause_circle' : 'play_circle';
                 });
             }
+
+            // Принудительно показываем все картинки
+            document.querySelectorAll('.image-full img, .mini-player .cover img').forEach(function(el) {
+                el.addEventListener('load', function() {
+                    this.style.opacity = '1';
+                    this.style.visibility = 'visible';
+                });
+                el.addEventListener('error', function() {
+                    this.style.background = '#222';
+                    this.style.minHeight = '60px';
+                });
+                // Если уже загружена
+                if (el.complete && el.naturalWidth > 0) {
+                    el.style.opacity = '1';
+                    el.style.visibility = 'visible';
+                }
+            });
 
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
@@ -656,6 +672,11 @@
                 this.style.minHeight = '60px';
                 this.alt = 'a.jpg не найдена';
             });
+
+            if (innerImage.complete && innerImage.naturalWidth > 0) {
+                innerImage.style.opacity = '1';
+                innerImage.style.visibility = 'visible';
+            }
 
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
