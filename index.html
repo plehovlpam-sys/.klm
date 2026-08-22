@@ -130,13 +130,15 @@
             display: none;
         }
 
-        /* ===== НАВБАР ===== */
-        .wp-content .navbar {
+        /* ===== СТАТУС БАР (FIXED, НЕ СКРОЛЛИТСЯ) ===== */
+        .wp-content .statusbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
             width: 100%;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            gap: 6px;
+            justify-content: space-between;
             padding: 4px 0 10px 0;
             flex-shrink: 0;
             font-family: 'Segoe UI', sans-serif;
@@ -144,58 +146,54 @@
             font-weight: 400;
             color: rgba(255, 255, 255, 0.7);
             letter-spacing: 0.2px;
+            background: #000;
         }
 
-        .wp-content .navbar .time {
-            font-size: 13px;
-            font-weight: 400;
-            color: rgba(255, 255, 255, 0.8);
-            margin-right: 8px;
+        .wp-content .statusbar .left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .wp-content .navbar .signal {
+        .wp-content .statusbar .right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .wp-content .statusbar .signal {
             display: flex;
             align-items: flex-end;
             gap: 1.5px;
             height: 12px;
-            margin-right: 4px;
         }
 
-        .wp-content .navbar .signal span {
+        .wp-content .statusbar .signal span {
             display: block;
             width: 3px;
             background: rgba(255, 255, 255, 0.6);
             border-radius: 1px;
         }
 
-        .wp-content .navbar .signal span:nth-child(1) { height: 4px; }
-        .wp-content .navbar .signal span:nth-child(2) { height: 6px; }
-        .wp-content .navbar .signal span:nth-child(3) { height: 8px; }
-        .wp-content .navbar .signal span:nth-child(4) { height: 10px; }
-        .wp-content .navbar .signal span:nth-child(5) { height: 12px; }
+        .wp-content .statusbar .signal span:nth-child(1) { height: 4px; }
+        .wp-content .statusbar .signal span:nth-child(2) { height: 6px; }
+        .wp-content .statusbar .signal span:nth-child(3) { height: 8px; }
+        .wp-content .statusbar .signal span:nth-child(4) { height: 10px; }
+        .wp-content .statusbar .signal span:nth-child(5) { height: 12px; }
 
-        .wp-content .navbar .wifi {
+        .wp-content .statusbar .wifi {
             display: inline-block;
             width: 16px;
             height: 12px;
-            margin-right: 4px;
-            position: relative;
         }
 
-        .wp-content .navbar .wifi svg {
+        .wp-content .statusbar .wifi svg {
             width: 16px;
             height: 12px;
             fill: rgba(255, 255, 255, 0.6);
         }
 
-        .wp-content .navbar .carrier {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-left: 2px;
-        }
-
-        .wp-content .navbar .battery {
-            margin-left: auto;
+        .wp-content .statusbar .battery {
             display: flex;
             align-items: center;
             gap: 4px;
@@ -203,7 +201,7 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
-        .wp-content .navbar .battery svg {
+        .wp-content .statusbar .battery svg {
             width: 20px;
             height: 10px;
             fill: none;
@@ -211,9 +209,15 @@
             stroke-width: 1.2;
         }
 
-        .wp-content .navbar .battery .fill {
+        .wp-content .statusbar .battery .fill {
             fill: rgba(255, 255, 255, 0.6);
             stroke: none;
+        }
+
+        .wp-content .statusbar .time {
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         /* ===== КОНТЕНТ ===== */
@@ -426,29 +430,32 @@
             <canvas id="overlayCanvas"></canvas>
 
             <div class="wp-content" id="wpContent">
-                <!-- НАВБАР -->
-                <div class="navbar">
-                    <span class="time" id="clockTime">00:00</span>
-                    <span class="signal">
-                        <span></span><span></span><span></span><span></span><span></span>
-                    </span>
-                    <span class="wifi">
-                        <svg viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 11.5C8.82843 11.5 9.5 10.8284 9.5 10C9.5 9.17157 8.82843 8.5 8 8.5C7.17157 8.5 6.5 9.17157 6.5 10C6.5 10.8284 7.17157 11.5 8 11.5Z" fill="rgba(255,255,255,0.6)"/>
-                            <path d="M5.5 8C6.5 7.2 7.7 6.7 9 6.7C10.3 6.7 11.5 7.2 12.5 8L11 9.5C10.3 8.9 9.3 8.6 8.5 8.6C7.7 8.6 6.7 8.9 6 9.5L5.5 8Z" fill="rgba(255,255,255,0.6)"/>
-                            <path d="M3 5.5C4.5 4.2 6.3 3.5 8.5 3.5C10.7 3.5 12.5 4.2 14 5.5L12.5 7C11.3 6 9.9 5.5 8.5 5.5C7.1 5.5 5.7 6 4.5 7L3 5.5Z" fill="rgba(255,255,255,0.6)"/>
-                            <path d="M0.5 3C2.5 1.3 5.2 0.5 8.5 0.5C11.8 0.5 14.5 1.3 16.5 3L15 4.5C13.3 3.2 11 2.5 8.5 2.5C6 2.5 3.7 3.2 2 4.5L0.5 3Z" fill="rgba(255,255,255,0.6)"/>
-                        </svg>
-                    </span>
-                    <span class="carrier">wp</span>
-                    <span class="battery">
-                        <span>100%</span>
-                        <svg viewBox="0 0 24 12">
-                            <rect x="0.5" y="0.5" width="19" height="11" rx="1.5" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
-                            <rect x="20.5" y="3.5" width="2.5" height="5" rx="0.5" fill="rgba(255,255,255,0.6)"/>
-                            <rect x="2" y="2" width="16" height="8" rx="1" class="fill" fill="rgba(255,255,255,0.6)"/>
-                        </svg>
-                    </span>
+                <!-- СТАТУС БАР (НЕ СКРОЛЛИТСЯ) -->
+                <div class="statusbar">
+                    <div class="left">
+                        <span class="signal">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </span>
+                        <span class="wifi">
+                            <svg viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 11.5C8.82843 11.5 9.5 10.8284 9.5 10C9.5 9.17157 8.82843 8.5 8 8.5C7.17157 8.5 6.5 9.17157 6.5 10C6.5 10.8284 7.17157 11.5 8 11.5Z" fill="rgba(255,255,255,0.6)"/>
+                                <path d="M5.5 8C6.5 7.2 7.7 6.7 9 6.7C10.3 6.7 11.5 7.2 12.5 8L11 9.5C10.3 8.9 9.3 8.6 8.5 8.6C7.7 8.6 6.7 8.9 6 9.5L5.5 8Z" fill="rgba(255,255,255,0.6)"/>
+                                <path d="M3 5.5C4.5 4.2 6.3 3.5 8.5 3.5C10.7 3.5 12.5 4.2 14 5.5L12.5 7C11.3 6 9.9 5.5 8.5 5.5C7.1 5.5 5.7 6 4.5 7L3 5.5Z" fill="rgba(255,255,255,0.6)"/>
+                                <path d="M0.5 3C2.5 1.3 5.2 0.5 8.5 0.5C11.8 0.5 14.5 1.3 16.5 3L15 4.5C13.3 3.2 11 2.5 8.5 2.5C6 2.5 3.7 3.2 2 4.5L0.5 3Z" fill="rgba(255,255,255,0.6)"/>
+                            </svg>
+                        </span>
+                        <span class="battery">
+                            <span>100%</span>
+                            <svg viewBox="0 0 24 12">
+                                <rect x="0.5" y="0.5" width="19" height="11" rx="1.5" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+                                <rect x="20.5" y="3.5" width="2.5" height="5" rx="0.5" fill="rgba(255,255,255,0.6)"/>
+                                <rect x="2" y="2" width="16" height="8" rx="1" class="fill" fill="rgba(255,255,255,0.6)"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="right">
+                        <span class="time" id="clockTime">00:00</span>
+                    </div>
                 </div>
 
                 <div class="title">heyyy</div>
@@ -475,7 +482,6 @@
             const innerImage = document.getElementById('innerImage');
             const clockTime = document.getElementById('clockTime');
 
-            // Часы
             function updateClock() {
                 const now = new Date();
                 const h = String(now.getHours()).padStart(2, '0');
