@@ -27,7 +27,7 @@
 
         @media (orientation: portrait) and (max-width: 768px) {
             body {
-                background: radial-gradient(circle at 50% 20%, #7b00b3 0%, #4a0066 35%, #2b003d 65%, #000000 90%);
+                background: radial-gradient(circle at 50% 20%, #3d0055 0%, #1f0033 35%, #0f001a 65%, #000000 90%);
                 background-attachment: fixed;
                 background-size: 100% 100%;
                 background-position: center;
@@ -77,7 +77,8 @@
             position: relative;
             z-index: 1;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.8));
+            transition: opacity 0.4s ease;
         }
 
         .phone-frame img.visible {
@@ -95,7 +96,7 @@
             display: block;
             object-fit: contain;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
         }
 
         #overlayCanvas.visible {
@@ -116,7 +117,7 @@
             padding: 0;
             overflow: hidden;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.4s ease;
             pointer-events: none;
         }
 
@@ -556,7 +557,7 @@
                     </div>
                 </div>
 
-                <div class="scroll-area">
+                <div class="scroll-area" id="scrollArea">
                     <div class="title">heyyy</div>
                     <div class="subtitle">welcome to my web page</div>
 
@@ -565,9 +566,10 @@
                     </div>
 
                     <div class="buttons">
-                        <a href="#" target="_blank">ig</a>
-                        <a href="#" target="_blank">tg (dm)</a>
-                        <a href="#" target="_blank">tg (channel)</a>
+                        <a href="https://www.instagram.com/to_oporr" target="_blank">ig</a>
+                        <a href="https://t.me/+u_luSfeN_ItiMjdi" target="_blank">tg (private)</a>
+                        <a href="https://t.me/lxxkxxjjxjxsl" target="_blank">tg (channel)</a>
+                        <a href="https://t.me/+AG4wg_BJI-hkMmQy" target="_blank">tg (life)</a>
                     </div>
 
                     <div class="image-full">
@@ -631,6 +633,8 @@
             const wpContent = document.getElementById('wpContent');
             const innerImage = document.getElementById('innerImage');
             const clockTime = document.getElementById('clockTime');
+            const scrollArea = document.getElementById('scrollArea');
+            const phoneFrame = document.getElementById('phoneFrame');
 
             function updateClock() {
                 const now = new Date();
@@ -641,7 +645,6 @@
             updateClock();
             setInterval(updateClock, 10000);
 
-            // АУДИО ПЛЕЕР
             const audio = document.getElementById('player');
             const playBtn = document.getElementById('playBtn');
             const prevBtn = document.getElementById('prevBtn');
@@ -651,9 +654,7 @@
             if (audio && playBtn) {
                 playBtn.addEventListener('click', function() {
                     if (audio.paused) {
-                        audio.play().catch(function(e) {
-                            console.log('Ошибка воспроизведения:', e);
-                        });
+                        audio.play().catch(function(e) {});
                         this.textContent = 'pause_circle';
                         isPlaying = true;
                     } else {
@@ -669,7 +670,6 @@
                 });
             }
 
-            // Перемотка на 5 секунд
             if (prevBtn) {
                 prevBtn.addEventListener('click', function() {
                     audio.currentTime = Math.max(0, audio.currentTime - 5);
@@ -682,7 +682,6 @@
                 });
             }
 
-            // Принудительно показываем все картинки
             document.querySelectorAll('.image-full img, .mini-player .cover img').forEach(function(el) {
                 el.addEventListener('load', function() {
                     this.style.opacity = '1';
@@ -722,6 +721,12 @@
                 innerImage.style.opacity = '1';
                 innerImage.style.visibility = 'visible';
             }
+
+            phoneFrame.addEventListener('click', function() {
+                if (scrollArea) {
+                    scrollArea.scrollTop = 0;
+                }
+            });
 
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
@@ -841,7 +846,7 @@
                     isWpVisible = true;
                     setTimeout(function() {
                         wpContent.classList.add('visible');
-                    }, 150);
+                    }, 400);
                 }
             }
 
