@@ -27,7 +27,7 @@
 
         @media (orientation: portrait) and (max-width: 768px) {
             body {
-                background: radial-gradient(circle at center, #7b00b3 0%, #4a0066 35%, #2b003d 65%, #000000 90%);
+                background: radial-gradient(circle at 50% 20%, #7b00b3 0%, #4a0066 35%, #2b003d 65%, #000000 90%);
                 background-attachment: fixed;
                 background-size: 100% 100%;
                 background-position: center;
@@ -229,10 +229,23 @@
             letter-spacing: -1px;
             text-transform: lowercase;
             margin-top: 2px;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             line-height: 1;
             text-align: left;
             width: 100%;
+        }
+
+        .wp-content .subtitle {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: left;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            width: 100%;
+            letter-spacing: 0;
+            font-style: normal;
         }
 
         .wp-content .image-wrap {
@@ -545,6 +558,7 @@
 
                 <div class="scroll-area">
                     <div class="title">heyyy</div>
+                    <div class="subtitle">welcome to my web page</div>
 
                     <div class="image-wrap">
                         <img src="a.jpg" alt="" id="innerImage" />
@@ -567,6 +581,7 @@
                     </div>
 
                     <div class="mini-player">
+                        <audio id="player" src="e.mp3"></audio>
                         <div class="cover">
                             <img src="q1.png" alt="" />
                         </div>
@@ -575,9 +590,9 @@
                             <div class="artist">Crystal Castles</div>
                         </div>
                         <div class="controls">
-                            <button class="prev-btn">skip_previous</button>
-                            <button class="play-btn">play_circle</button>
-                            <button class="next-btn">skip_next</button>
+                            <button class="prev-btn" id="prevBtn">skip_previous</button>
+                            <button class="play-btn" id="playBtn">play_circle</button>
+                            <button class="next-btn" id="nextBtn">skip_next</button>
                         </div>
                     </div>
 
@@ -626,13 +641,44 @@
             updateClock();
             setInterval(updateClock, 10000);
 
-            // Плеер
+            // АУДИО ПЛЕЕР
+            const audio = document.getElementById('player');
+            const playBtn = document.getElementById('playBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
             let isPlaying = false;
-            const playBtn = document.querySelector('.play-btn');
-            if (playBtn) {
+
+            if (audio && playBtn) {
                 playBtn.addEventListener('click', function() {
-                    isPlaying = !isPlaying;
-                    this.textContent = isPlaying ? 'pause_circle' : 'play_circle';
+                    if (audio.paused) {
+                        audio.play().catch(function(e) {
+                            console.log('Ошибка воспроизведения:', e);
+                        });
+                        this.textContent = 'pause_circle';
+                        isPlaying = true;
+                    } else {
+                        audio.pause();
+                        this.textContent = 'play_circle';
+                        isPlaying = false;
+                    }
+                });
+
+                audio.addEventListener('ended', function() {
+                    playBtn.textContent = 'play_circle';
+                    isPlaying = false;
+                });
+            }
+
+            // Перемотка на 5 секунд
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    audio.currentTime = Math.max(0, audio.currentTime - 5);
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5);
                 });
             }
 
@@ -646,7 +692,6 @@
                     this.style.background = '#222';
                     this.style.minHeight = '60px';
                 });
-                // Если уже загружена
                 if (el.complete && el.naturalWidth > 0) {
                     el.style.opacity = '1';
                     el.style.visibility = 'visible';
