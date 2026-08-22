@@ -130,24 +130,29 @@
             display: none;
         }
 
-        /* Статусбар */
+        /* СТАТУСБАР — принудительные размеры */
         .wp-content .statusbar {
             width: 100%;
             flex-shrink: 0;
             line-height: 0;
             padding: 0;
+            background: transparent;
+            min-height: 20px;
         }
 
         .wp-content .statusbar img {
             width: 100%;
             height: auto;
             display: block;
+            opacity: 1;
+            visibility: visible;
+            min-height: 20px;
+            background: rgba(255,0,0,0.1);
         }
 
-        /* Контент с отступом */
         .wp-content .content-inner {
             width: 100%;
-            padding: 16px 20px 30px;
+            padding: 12px 20px 30px;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -161,8 +166,8 @@
             color: #fff;
             letter-spacing: -1px;
             text-transform: lowercase;
-            margin-top: 8px;
-            margin-bottom: 8px;
+            margin-top: 4px;
+            margin-bottom: 6px;
             line-height: 1;
             text-align: left;
             width: 100%;
@@ -361,12 +366,11 @@
             <canvas id="overlayCanvas"></canvas>
 
             <div class="wp-content" id="wpContent">
-                <!-- СТАТУСБАР поверх контента -->
-                <div class="statusbar">
-                    <img src="statusbar2.png" alt="" />
+                <!-- СТАТУСБАР с принудительным отображением -->
+                <div class="statusbar" id="statusbarWrap">
+                    <img src="statusbar2.png" alt="" id="statusbarImg" />
                 </div>
 
-                <!-- Контент с отступом -->
                 <div class="content-inner">
                     <div class="title">heyyy</div>
                     <div class="image-wrap">
@@ -391,20 +395,32 @@
             const ctx = canvas.getContext('2d');
             const wpContent = document.getElementById('wpContent');
             const innerImage = document.getElementById('innerImage');
+            const statusbarImg = document.getElementById('statusbarImg');
+            const statusbarWrap = document.getElementById('statusbarWrap');
 
-            const analysisCanvas = document.createElement('canvas');
-            const analysisCtx = analysisCanvas.getContext('2d');
+            // Принудительное отображение статусбара
+            statusbarImg.addEventListener('load', function() {
+                console.log('✅ Статусбар загружен!');
+                this.style.opacity = '1';
+                this.style.visibility = 'visible';
+                this.style.display = 'block';
+                statusbarWrap.style.minHeight = 'auto';
+            });
 
-            let lastRedArea = null;
-            let lastImgWidth = 0;
-            let lastImgHeight = 0;
-            let isReady = false;
-            let isWpVisible = false;
+            statusbarImg.addEventListener('error', function() {
+                console.log('❌ Ошибка загрузки statusbar2.png');
+                this.style.background = '#333';
+                this.style.minHeight = '30px';
+                this.alt = 'statusbar2.png не найдена';
+                this.style.display = 'block';
+            });
 
+            // Принудительное отображение картинки
             innerImage.addEventListener('load', function() {
                 console.log('✅ Картинка a.jpg загружена!');
                 this.style.opacity = '1';
                 this.style.visibility = 'visible';
+                this.style.display = 'block';
             });
 
             innerImage.addEventListener('error', function() {
@@ -412,7 +428,23 @@
                 this.style.background = '#222';
                 this.style.minHeight = '100px';
                 this.alt = 'a.jpg не найдена';
+                this.style.display = 'block';
             });
+
+            // Если картинки уже загружены до добавления слушателей
+            if (statusbarImg.complete && statusbarImg.naturalWidth > 0) {
+                statusbarImg.style.opacity = '1';
+                statusbarImg.style.visibility = 'visible';
+                statusbarImg.style.display = 'block';
+                console.log('✅ Статусбар уже загружен (complete)');
+            }
+
+            if (innerImage.complete && innerImage.naturalWidth > 0) {
+                innerImage.style.opacity = '1';
+                innerImage.style.visibility = 'visible';
+                innerImage.style.display = 'block';
+                console.log('✅ Картинка a.jpg уже загружена (complete)');
+            }
 
             function isRed(r, g, b, a) {
                 if (a < 30) return false;
