@@ -124,7 +124,7 @@
             pointer-events: auto;
         }
 
-        /* ===== СТАТУС БАР — ПРИЛЕПЛЕН К ВЕРХУ, НЕ СКРОЛЛИТСЯ ===== */
+        /* ===== СТАТУС БАР ===== */
         .wp-content .statusbar {
             position: sticky;
             top: 0;
@@ -174,12 +174,6 @@
         .wp-content .statusbar .signal span:nth-child(3) { height: 8px; }
         .wp-content .statusbar .signal span:nth-child(4) { height: 10px; }
         .wp-content .statusbar .signal span:nth-child(5) { height: 12px; }
-
-        .wp-content .statusbar .wifi {
-            display: inline-block;
-            width: 16px;
-            height: 12px;
-        }
 
         .wp-content .statusbar .wifi svg {
             width: 16px;
@@ -238,7 +232,7 @@
             margin-top: 2px;
             margin-bottom: 6px;
             line-height: 1;
-            text-align: left;
+            text-align: center;
             width: 100%;
         }
 
@@ -248,14 +242,14 @@
             line-height: 0;
             background: transparent;
             min-height: 40px;
-            text-align: left;
+            text-align: center;
         }
 
         .wp-content .image-wrap img {
-            width: auto;
+            width: 100%;
             max-width: 100%;
             height: auto;
-            max-height: 260px;
+            max-height: 400px;
             object-fit: contain;
             display: block;
             border-radius: 0;
@@ -263,7 +257,7 @@
             background: transparent;
             opacity: 1;
             visibility: visible;
-            margin: 0;
+            margin: 0 auto;
         }
 
         .wp-content .buttons {
@@ -302,22 +296,109 @@
             border-color: rgba(255, 255, 255, 0.8);
         }
 
-        .wp-content .spacer {
+        .wp-content .image-full {
+            width: 100%;
+            padding: 4px 0;
+            line-height: 0;
+            text-align: center;
+        }
+
+        .wp-content .image-full img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ===== МИНИ ПЛЕЕР ===== */
+        .wp-content .mini-player {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 12px;
+            margin: 6px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .wp-content .mini-player .cover {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+        }
+
+        .wp-content .mini-player .cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .wp-content .mini-player .info {
             flex: 1;
-            min-height: 6px;
+            min-width: 0;
+        }
+
+        .wp-content .mini-player .info .track {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .wp-content .mini-player .info .artist {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 11px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .wp-content .mini-player .controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .wp-content .mini-player .controls button {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 6px;
+            transition: color 0.15s ease;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .wp-content .mini-player .controls button:active {
+            color: #fff;
+        }
+
+        .wp-content .mini-player .controls .play-btn {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .wp-content .bottom-text {
             font-family: 'Segoe UI', sans-serif;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.12);
+            font-size: 13px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.5);
             text-align: left;
-            text-transform: lowercase;
-            letter-spacing: 0.5px;
-            margin-top: 12px;
-            padding-bottom: 4px;
-            line-height: 1.4;
+            line-height: 1.5;
+            margin-top: 8px;
+            padding: 8px 0;
             width: 100%;
+            font-style: italic;
+        }
+
+        .wp-content .spacer {
+            flex: 1;
+            min-height: 6px;
         }
 
         .rotate-message {
@@ -433,7 +514,7 @@
             <canvas id="overlayCanvas"></canvas>
 
             <div class="wp-content" id="wpContent">
-                <!-- СТАТУС БАР — ПРИЛЕПЛЕН К ВЕРХУ -->
+                <!-- СТАТУС БАР -->
                 <div class="statusbar">
                     <div class="left">
                         <span class="signal">
@@ -464,16 +545,65 @@
                 <!-- СКРОЛЛИРУЕМАЯ ОБЛАСТЬ -->
                 <div class="scroll-area">
                     <div class="title">heyyy</div>
+
                     <div class="image-wrap">
                         <img src="a.jpg" alt="" id="innerImage" />
                     </div>
+
                     <div class="buttons">
                         <a href="#" target="_blank">ig</a>
                         <a href="#" target="_blank">tg (dm)</a>
                         <a href="#" target="_blank">tg (channel)</a>
                     </div>
+
+                    <div class="image-full">
+                        <img src="b.png" alt="" />
+                    </div>
+                    <div class="image-full">
+                        <img src="c.png" alt="" />
+                    </div>
+                    <div class="image-full">
+                        <img src="d.png" alt="" />
+                    </div>
+
+                    <!-- МИНИ ПЛЕЕР -->
+                    <div class="mini-player">
+                        <div class="cover">
+                            <img src="q1.png" alt="" />
+                        </div>
+                        <div class="info">
+                            <div class="track">Vanished</div>
+                            <div class="artist">Crystal Castles</div>
+                        </div>
+                        <div class="controls">
+                            <button class="prev-btn">⏮</button>
+                            <button class="play-btn">▶</button>
+                            <button class="next-btn">⏭</button>
+                        </div>
+                    </div>
+
+                    <div class="image-full">
+                        <img src="e.png" alt="" />
+                    </div>
+                    <div class="image-full">
+                        <img src="f.png" alt="" />
+                    </div>
+                    <div class="image-full">
+                        <img src="g.png" alt="" />
+                    </div>
+                    <div class="image-full">
+                        <img src="te.png" alt="" />
+                    </div>
+
+                    <div class="bottom-text">
+                        "ибо так возлюбил бог мир, что отдал сына своего единородного, дабы всякий верующий в него не погиб, но имел жизнь вечную."
+                    </div>
+
+                    <div class="image-full">
+                        <img src="ji.png" alt="" />
+                    </div>
+
                     <div class="spacer"></div>
-                    <div class="bottom-text">windows phone 8</div>
                 </div>
             </div>
         </div>
@@ -496,6 +626,16 @@
             }
             updateClock();
             setInterval(updateClock, 10000);
+
+            // Простой плеер
+            let isPlaying = false;
+            const playBtn = document.querySelector('.play-btn');
+            if (playBtn) {
+                playBtn.addEventListener('click', function() {
+                    isPlaying = !isPlaying;
+                    this.textContent = isPlaying ? '⏸' : '▶';
+                });
+            }
 
             const analysisCanvas = document.createElement('canvas');
             const analysisCtx = analysisCanvas.getContext('2d');
