@@ -112,10 +112,8 @@
             flex-direction: column;
             align-items: flex-start;
             background: #000;
-            padding: 12px 20px 30px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
+            padding: 0;
+            overflow: hidden;
             opacity: 0;
             transition: opacity 0.5s ease;
             pointer-events: none;
@@ -126,21 +124,17 @@
             pointer-events: auto;
         }
 
-        .wp-content::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* ===== СТАТУС БАР (FIXED, НЕ СКРОЛЛИТСЯ) ===== */
+        /* ===== СТАТУС БАР — ПРИЛЕПЛЕН К ВЕРХУ, НЕ СКРОЛЛИТСЯ ===== */
         .wp-content .statusbar {
             position: sticky;
             top: 0;
             z-index: 10;
             width: 100%;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 4px 0 10px 0;
-            flex-shrink: 0;
+            padding: 4px 8px 6px 8px;
             font-family: 'Segoe UI', sans-serif;
             font-size: 12px;
             font-weight: 400;
@@ -152,13 +146,13 @@
         .wp-content .statusbar .left {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .wp-content .statusbar .right {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .wp-content .statusbar .signal {
@@ -196,7 +190,7 @@
         .wp-content .statusbar .battery {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             font-size: 11px;
             color: rgba(255, 255, 255, 0.6);
         }
@@ -220,29 +214,40 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* ===== КОНТЕНТ ===== */
+        /* ===== СКРОЛЛИРУЕМЫЙ КОНТЕНТ ===== */
+        .wp-content .scroll-area {
+            flex: 1;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 12px 20px 12px;
+        }
+
+        .wp-content .scroll-area::-webkit-scrollbar {
+            display: none;
+        }
+
         .wp-content .title {
             font-family: 'Segoe UI', sans-serif;
-            font-size: 44px;
+            font-size: 40px;
             font-weight: 300;
             color: #fff;
             letter-spacing: -1px;
             text-transform: lowercase;
-            margin-top: 4px;
-            margin-bottom: 8px;
+            margin-top: 2px;
+            margin-bottom: 6px;
             line-height: 1;
             text-align: left;
             width: 100%;
-            flex-shrink: 0;
         }
 
         .wp-content .image-wrap {
             width: 100%;
-            padding: 4px 0 12px 0;
+            padding: 2px 0 10px 0;
             line-height: 0;
-            flex-shrink: 0;
             background: transparent;
-            min-height: 50px;
+            min-height: 40px;
             text-align: left;
         }
 
@@ -250,7 +255,7 @@
             width: auto;
             max-width: 100%;
             height: auto;
-            max-height: 300px;
+            max-height: 260px;
             object-fit: contain;
             display: block;
             border-radius: 0;
@@ -265,11 +270,10 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 10px;
+            gap: 8px;
             width: 100%;
-            max-width: 200px;
-            margin-top: 4px;
-            flex-shrink: 0;
+            max-width: 180px;
+            margin-top: 2px;
         }
 
         .wp-content .buttons a {
@@ -282,7 +286,7 @@
             color: #fff;
             background: transparent;
             border: 2px solid rgba(255, 255, 255, 0.5);
-            padding: 10px 16px;
+            padding: 8px 14px;
             text-align: left;
             text-decoration: none;
             letter-spacing: 0.3px;
@@ -300,7 +304,7 @@
 
         .wp-content .spacer {
             flex: 1;
-            min-height: 10px;
+            min-height: 6px;
         }
 
         .wp-content .bottom-text {
@@ -310,10 +314,9 @@
             text-align: left;
             text-transform: lowercase;
             letter-spacing: 0.5px;
-            margin-top: 16px;
-            padding-bottom: 6px;
+            margin-top: 12px;
+            padding-bottom: 4px;
             line-height: 1.4;
-            flex-shrink: 0;
             width: 100%;
         }
 
@@ -430,7 +433,7 @@
             <canvas id="overlayCanvas"></canvas>
 
             <div class="wp-content" id="wpContent">
-                <!-- СТАТУС БАР (НЕ СКРОЛЛИТСЯ) -->
+                <!-- СТАТУС БАР — ПРИЛЕПЛЕН К ВЕРХУ -->
                 <div class="statusbar">
                     <div class="left">
                         <span class="signal">
@@ -458,17 +461,20 @@
                     </div>
                 </div>
 
-                <div class="title">heyyy</div>
-                <div class="image-wrap">
-                    <img src="a.jpg" alt="" id="innerImage" />
+                <!-- СКРОЛЛИРУЕМАЯ ОБЛАСТЬ -->
+                <div class="scroll-area">
+                    <div class="title">heyyy</div>
+                    <div class="image-wrap">
+                        <img src="a.jpg" alt="" id="innerImage" />
+                    </div>
+                    <div class="buttons">
+                        <a href="#" target="_blank">ig</a>
+                        <a href="#" target="_blank">tg (dm)</a>
+                        <a href="#" target="_blank">tg (channel)</a>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="bottom-text">windows phone 8</div>
                 </div>
-                <div class="buttons">
-                    <a href="#" target="_blank">ig</a>
-                    <a href="#" target="_blank">tg (dm)</a>
-                    <a href="#" target="_blank">tg (channel)</a>
-                </div>
-                <div class="spacer"></div>
-                <div class="bottom-text">windows phone 8</div>
             </div>
         </div>
     </div>
@@ -507,7 +513,7 @@
 
             innerImage.addEventListener('error', function() {
                 this.style.background = '#222';
-                this.style.minHeight = '80px';
+                this.style.minHeight = '60px';
                 this.alt = 'a.jpg не найдена';
             });
 
